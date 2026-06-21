@@ -1,0 +1,12 @@
+import "./boot.js";
+import "../js/config.js";
+import "../js/supabase.js";
+import "../js/toast.js";
+import "../js/utils.js";
+import "../js/components.js";
+import "../js/landing.js";
+import "../js/register.js";
+import "../js/ticket.js";
+import "../js/admin.js";
+import "../js/scanner.js";
+import "../js/app.js";
