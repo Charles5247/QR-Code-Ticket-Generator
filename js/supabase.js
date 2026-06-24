@@ -187,8 +187,8 @@ const DB = {
         DemoStore.getAll().filter(
           (a) => a.ticket_category === data.ticket_category,
         ).length + 1;
-      const ticket_code = `MCFABS-2026-${prefix}-${String(count).padStart(4, "0")}`;
-      const seat_number = `${prefix}-${String(count).padStart(3, "0")}`;
+      const ticket_code = generateTicketCode(prefix, count);
+      const seat_number = generateSeatNumber(prefix, count);
       const attendee = DemoStore.add({
         ...data,
         ticket_code,

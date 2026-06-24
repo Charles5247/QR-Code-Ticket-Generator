@@ -4,8 +4,8 @@
 
 const CONFIG = {
   // ── Supabase ──────────────────────────────────────────────
-  SUPABASE_URL: "https://YOUR_SUPABASE_PROJECT_URL.supabase.co",
-  SUPABASE_ANON_KEY: "YOUR_SUPABASE_ANON_KEY",
+  SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
   // ── Paystack ──────────────────────────────────────────────
   PAYSTACK_PUBLIC_KEY: "pk_test_YOUR_PAYSTACK_PUBLIC_KEY",

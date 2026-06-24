@@ -220,7 +220,7 @@ function Navbar({ currentPage, setPage }) {
             inset: 0,
             width: "100%",
             background:
-              "linear-gradient(135deg, #F39F5A 0%, #AE445A 50%, #E8BCB9 70%) ",
+              "linear-gradient(135deg, #E6007A 0%, #B5179E 50%, #7209B7 100%)",
             backdropFilter: "blur(20px)",
             zIndex: 50,
             display: "flex",

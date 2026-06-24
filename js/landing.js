@@ -747,8 +747,8 @@ function SpeakerSection() {
             "div",
             {
               style: {
-                width: 500,
-                height: 500,
+                width: 350,
+                height: 350,
                 margin: "0 auto 24px",
                 background: "url('fabs.jpg') center",
                 backgroundSize: "cover",
