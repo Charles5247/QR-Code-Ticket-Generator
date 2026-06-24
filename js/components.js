@@ -508,7 +508,7 @@ function Footer({ setPage }) {
           { style: { color: "rgba(255,255,255,0.3)", fontSize: 13 } },
           `© 2026 MC FABS Masterclass. All rights reserved.`,
         ),
-        React.createElement(
+        /*React.createElement(
           "button",
           {
             onClick: () => setPage("admin-login"),
@@ -522,7 +522,7 @@ function Footer({ setPage }) {
             },
           },
           "🔐 Admin Portal",
-        ),
+        ),*/
       ),
     ),
   );
