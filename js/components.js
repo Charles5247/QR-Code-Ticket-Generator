@@ -69,7 +69,7 @@ function Navbar({ currentPage, setPage }) {
               style: {
                 width: 40,
                 height: 40,
-                background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+                background: "linear-gradient(135deg, #e040fb, #c2185b)",
                 borderRadius: 10,
                 display: "flex",
                 alignItems: "center",
@@ -103,7 +103,7 @@ function Navbar({ currentPage, setPage }) {
               {
                 style: {
                   fontSize: 10,
-                  color: "linear-gradient(135deg, #F39F5A, #AE445A)",
+                  color: "linear-gradient(135deg, #e040fb, #c2185b)",
                   letterSpacing: "0.1em",
                 },
               },
@@ -130,7 +130,7 @@ function Navbar({ currentPage, setPage }) {
                   cursor: "pointer",
                   fontFamily: "Inter, sans-serif",
                 },
-                onMouseEnter: (e) => (e.target.style.color = "#AE445A"),
+                onMouseEnter: (e) => (e.target.style.color = "#c2185b"),
                 onMouseLeave: (e) =>
                   (e.target.style.color = "rgba(255,255,255,0.7)"),
               },
@@ -159,7 +159,7 @@ function Navbar({ currentPage, setPage }) {
                 transition: "all 0.2s ease",
               },
               onMouseEnter: (e) => {
-                e.target.style.borderColor = "rgba(102,103,171,0.5)";
+                e.target.style.borderColor = "rgba(194,24,91,0.5)";
                 e.target.style.color = "white";
               },
               onMouseLeave: (e) => {
@@ -175,7 +175,7 @@ function Navbar({ currentPage, setPage }) {
               onClick: () => scrollTo("#tickets"),
               className: "btn-primary",
               style: {
-                background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+                background: "linear-gradient(135deg, #e040fb, #c2185b)",
                 color: "white",
                 padding: "9px 22px",
                 borderRadius: 10,
@@ -220,7 +220,7 @@ function Navbar({ currentPage, setPage }) {
             inset: 0,
             width: "100%",
             background:
-              "linear-gradient(135deg, #E6007A 0%, #B5179E 50%, #7209B7 100%)",
+              "linear-gradient(135deg, #c2185b 0%, #8b005d 50%, #6a0572 100%)",
             backdropFilter: "blur(20px)",
             zIndex: 50,
             display: "flex",
@@ -294,7 +294,7 @@ function Navbar({ currentPage, setPage }) {
               setMobileOpen(false);
             },
             style: {
-              background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+              background: "linear-gradient(135deg, #e040fb, #c2185b)",
               color: "white",
               padding: "14px 40px",
               borderRadius: 12,
@@ -317,7 +317,7 @@ function Footer({ setPage }) {
     "footer",
     {
       style: {
-        background: "#1D1A39",
+        background: "#1a0a2e",
         borderTop: "1px solid rgba(255,255,255,0.06)",
         padding: "48px 24px 24px",
       },
@@ -341,7 +341,7 @@ function Footer({ setPage }) {
                 style: {
                   width: 44,
                   height: 44,
-                  background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+                  background: "linear-gradient(135deg, #e040fb, #c2185b)",
                   borderRadius: 10,
                   display: "flex",
                   alignItems: "center",
@@ -366,7 +366,7 @@ function Footer({ setPage }) {
                 {
                   style: {
                     fontSize: 11,
-                    color: "linear-gradient(135deg, #F39F5A, #AE445A)",
+                    color: "linear-gradient(135deg, #e040fb, #c2185b)",
                     letterSpacing: "0.1em",
                   },
                 },
@@ -411,7 +411,7 @@ function Footer({ setPage }) {
                     textDecoration: "none",
                     transition: "color 0.2s",
                   },
-                  onMouseEnter: (e) => (e.target.style.color = "#AE445A"),
+                  onMouseEnter: (e) => (e.target.style.color = "#c2185b"),
                   onMouseLeave: (e) =>
                     (e.target.style.color = "rgba(255,255,255,0.45)"),
                 },
@@ -529,12 +529,12 @@ function Footer({ setPage }) {
 }
 
 // ─── Loading Spinner ───────────────────────────────────────────────────────────
-function LoadingSpinner({ size = 24, color = "#AE445A" }) {
+function LoadingSpinner({ size = 24, color = "#c2185b" }) {
   return React.createElement("div", {
     style: {
       width: size,
       height: size,
-      border: `3px solid rgba(123,51,126,0.2)`,
+      border: `3px solid rgba(194,24,91,0.2)`,
       borderTopColor: color,
       borderRadius: "50%",
       animation: "spin 0.8s linear infinite",
@@ -556,12 +556,12 @@ function SectionHeader({ tag, title, subtitle, titleClass = "" }) {
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            background: "rgba(102,103,171,0.15)",
-            border: "1px solid rgba(102,103,171,0.3)",
+            background: "rgba(194,24,91,0.15)",
+            border: "1px solid rgba(194,24,91,0.3)",
             borderRadius: 999,
             padding: "6px 16px",
             marginBottom: 20,
-            color: "#E8BCB9",
+            color: "#f3e5f5",
             fontSize: 13,
             fontWeight: 500,
             letterSpacing: "0.05em",
@@ -621,7 +621,7 @@ function CountdownWidget() {
       {
         style: {
           textAlign: "center",
-          color: "#AE445A",
+          color: "#c2185b",
           fontWeight: 700,
           fontSize: 20,
         },
@@ -673,7 +673,7 @@ function CountdownWidget() {
           {
             style: {
               fontSize: 11,
-              color: "rgba(123,51,126,0.8)",
+              color: "rgba(194,24,91,0.8)",
               marginTop: 4,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
@@ -691,15 +691,15 @@ function StatusBadge({ status }) {
   const configs = {
     paid: {
       label: "Paid",
-      bg: "rgba(102,103,171,0.15)",
-      color: "#F39F5A",
-      border: "rgba(102,103,171,0.3)",
+      bg: "rgba(194,24,91,0.15)",
+      color: "#e040fb",
+      border: "rgba(194,24,91,0.3)",
     },
     pending: {
       label: "Pending",
-      bg: "rgba(245,213,224,0.15)",
-      color: "#E8BCB9",
-      border: "rgba(245,213,224,0.3)",
+      bg: "rgba(243,229,245,0.15)",
+      color: "#f3e5f5",
+      border: "rgba(243,229,245,0.3)",
     },
     failed: {
       label: "Failed",
@@ -750,8 +750,8 @@ function Modal({ isOpen, onClose, children, maxWidth = 600 }) {
       "div",
       {
         style: {
-          background: "linear-gradient(135deg, #451952 0%, #451952 100%)",
-          border: "1px solid rgba(123,51,126,0.2)",
+          background: "linear-gradient(135deg, #6a0572 0%, #6a0572 100%)",
+          border: "1px solid rgba(194,24,91,0.2)",
           borderRadius: 20,
           padding: 32,
           width: "100%",

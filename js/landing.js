@@ -50,7 +50,7 @@ function HeroSection({ setPage }) {
         width: 400,
         height: 400,
         background:
-          "radial-gradient(circle, rgba(102,103,171,0.25) 0%, transparent 70%)",
+          "radial-gradient(circle, rgba(194,24,91,0.25) 0%, transparent 70%)",
         borderRadius: "50%",
         animation: "float 6s ease-in-out infinite",
         zIndex: 0,
@@ -64,7 +64,7 @@ function HeroSection({ setPage }) {
         width: 300,
         height: 300,
         background:
-          "radial-gradient(circle, rgba(245,213,224,0.15) 0%, transparent 70%)",
+          "radial-gradient(circle, rgba(243,229,245,0.15) 0%, transparent 70%)",
         borderRadius: "50%",
         animation: "float 8s ease-in-out infinite reverse",
         zIndex: 0,
@@ -100,8 +100,8 @@ function HeroSection({ setPage }) {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                background: "rgba(245,213,224,0.15)",
-                border: "1px solid rgba(245,213,224,0.3)",
+                background: "rgba(243,229,245,0.15)",
+                border: "1px solid rgba(243,229,245,0.3)",
                 borderRadius: 999,
                 padding: "8px 20px",
                 marginBottom: 28,
@@ -221,7 +221,7 @@ function HeroSection({ setPage }) {
                 onClick: scrollToTickets,
                 style: {
                   background:
-                    "linear-gradient(135deg, #F39F5A 0%, #AE445A 50%, #F39F5A 100%)",
+                    "linear-gradient(135deg, #e040fb 0%, #c2185b 50%, #e040fb 100%)",
                   color: "white",
                   padding: "16px 36px",
                   borderRadius: 14,
@@ -230,17 +230,16 @@ function HeroSection({ setPage }) {
                   cursor: "pointer",
                   border: "none",
                   fontFamily: "Inter, sans-serif",
-                  boxShadow: "0 8px 32px rgba(102,103,171,0.4)",
+                  boxShadow: "0 8px 32px rgba(194,24,91,0.4)",
                   transition: "all 0.3s ease",
                 },
                 onMouseEnter: (e) => {
                   e.target.style.transform = "translateY(-3px)";
-                  e.target.style.boxShadow =
-                    "0 16px 48px rgba(102,103,171,0.5)";
+                  e.target.style.boxShadow = "0 16px 48px rgba(194,24,91,0.5)";
                 },
                 onMouseLeave: (e) => {
                   e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 8px 32px rgba(102,103,171,0.4)";
+                  e.target.style.boxShadow = "0 8px 32px rgba(194,24,91,0.4)";
                 },
               },
               "🎟️ Reserve Your Seat",
@@ -265,7 +264,7 @@ function HeroSection({ setPage }) {
                   transition: "all 0.2s ease",
                 },
                 onMouseEnter: (e) => {
-                  e.target.style.background = "rgba(102,103,171,0.15)";
+                  e.target.style.background = "rgba(194,24,91,0.15)";
                 },
                 onMouseLeave: (e) => {
                   e.target.style.background = "rgba(255,255,255,0.06)";
@@ -286,8 +285,8 @@ function HeroSection({ setPage }) {
             {
               style: {
                 background:
-                  "linear-gradient(135deg, rgba(102,103,171,0.2) 0%, rgba(33,6,53,0.8) 100%)",
-                border: "1px solid rgba(123,51,126,0.3)",
+                  "linear-gradient(135deg, rgba(194,24,91,0.2) 0%, rgba(106,5,114,0.8) 100%)",
+                border: "1px solid rgba(194,24,91,0.3)",
                 borderRadius: 24,
                 padding: 32,
                 backdropFilter: "blur(20px)",
@@ -303,7 +302,7 @@ function HeroSection({ setPage }) {
                 width: 200,
                 height: 200,
                 background:
-                  "radial-gradient(circle, rgba(123,51,126,0.2) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(194,24,91,0.2) 0%, transparent 70%)",
                 borderRadius: "50%",
               },
             }),
@@ -333,7 +332,7 @@ function HeroSection({ setPage }) {
                     justifyContent: "center",
                     fontSize: 32,
                     flexShrink: 0,
-                    boxShadow: "0 0 0 3px rgba(123,51,126,0.3)",
+                    boxShadow: "0 0 0 3px rgba(194,24,91,0.3)",
                   },
                 },
                 "",
@@ -357,7 +356,7 @@ function HeroSection({ setPage }) {
                   "p",
                   {
                     style: {
-                      color: "#AE445A",
+                      color: "#c2185b",
                       fontSize: 14,
                       margin: "4px 0 0",
                       fontStyle: "italic",
@@ -411,7 +410,7 @@ function HeroSection({ setPage }) {
                     "div",
                     {
                       style: {
-                        color: "#E8BCB9",
+                        color: "#f3e5f5",
                         fontWeight: 800,
                         fontSize: 22,
                         fontFamily: "Space Grotesk, sans-serif",
@@ -549,9 +548,9 @@ function StatsBar() {
     {
       style: {
         background:
-          "linear-gradient(135deg, rgba(102,103,171,0.15), rgba(245,213,224,0.1))",
-        borderTop: "1px solid rgba(102,103,171,0.2)",
-        borderBottom: "1px solid rgba(102,103,171,0.2)",
+          "linear-gradient(135deg, rgba(194,24,91,0.15), rgba(243,229,245,0.1))",
+        borderTop: "1px solid rgba(194,24,91,0.2)",
+        borderBottom: "1px solid rgba(194,24,91,0.2)",
         padding: "20px 24px",
       },
     },
@@ -576,7 +575,7 @@ function StatsBar() {
               "div",
               {
                 style: {
-                  color: "#E8BCB9",
+                  color: "#f3e5f5",
                   fontWeight: 800,
                   fontSize: 28,
                   fontFamily: "Space Grotesk, sans-serif",
@@ -670,7 +669,7 @@ function AboutSection() {
                 style: {
                   width: 52,
                   height: 52,
-                  background: "rgba(102,103,171,0.2)",
+                  background: "rgba(194,24,91,0.2)",
                   borderRadius: 12,
                   display: "flex",
                   alignItems: "center",
@@ -719,7 +718,7 @@ function SpeakerSection() {
       style: {
         padding: "80px 24px",
         background:
-          "linear-gradient(135deg, rgba(102,103,171,0.08) 0%, rgba(33,6,53,0.9) 100%)",
+          "linear-gradient(135deg, rgba(194,24,91,0.08) 0%, rgba(106,5,114,0.9) 100%)",
       },
     },
     React.createElement(
@@ -758,7 +757,7 @@ function SpeakerSection() {
                 justifyContent: "center",
                 fontSize: 80,
                 boxShadow:
-                  "0 0 60px rgba(102,103,171,0.4), 0 0 0 4px rgba(123,51,126,0.2)",
+                  "0 0 60px rgba(194,24,91,0.4), 0 0 0 4px rgba(194,24,91,0.2)",
                 position: "relative",
               },
             },
@@ -772,9 +771,9 @@ function SpeakerSection() {
                   right: 8,
                   width: 40,
                   height: 40,
-                  background: "#F39F5A",
+                  background: "#e040fb",
                   borderRadius: "50%",
-                  border: "3px solid #1D1A39",
+                  border: "3px solid #1a0a2e",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -826,11 +825,11 @@ function SpeakerSection() {
                 {
                   key: tag,
                   style: {
-                    background: "rgba(102,103,171,0.15)",
-                    border: "1px solid rgba(102,103,171,0.3)",
+                    background: "rgba(194,24,91,0.15)",
+                    border: "1px solid rgba(194,24,91,0.3)",
                     borderRadius: 999,
                     padding: "4px 12px",
-                    color: "#E8BCB9",
+                    color: "#f3e5f5",
                     fontSize: 12,
                   },
                 },
@@ -985,24 +984,24 @@ function ScheduleSection() {
 
   const typeColors = {
     main: {
-      bg: "rgba(102,103,171,0.15)",
-      border: "rgba(102,103,171,0.3)",
-      dot: "#F39F5A",
+      bg: "rgba(194,24,91,0.15)",
+      border: "rgba(194,24,91,0.3)",
+      dot: "#e040fb",
     },
     break: {
-      bg: "rgba(102,103,171,0.1)",
-      border: "rgba(102,103,171,0.2)",
-      dot: "#F39F5A",
+      bg: "rgba(194,24,91,0.1)",
+      border: "rgba(194,24,91,0.2)",
+      dot: "#e040fb",
     },
     special: {
-      bg: "rgba(245,213,224,0.12)",
-      border: "rgba(245,213,224,0.25)",
-      dot: "#E8BCB9",
+      bg: "rgba(243,229,245,0.12)",
+      border: "rgba(243,229,245,0.25)",
+      dot: "#f3e5f5",
     },
     vip: {
-      bg: "rgba(123,51,126,0.00)",
-      border: "rgba(123,51,126,0.00)",
-      dot: "#AE445A",
+      bg: "rgba(106,5,114,0.00)",
+      border: "rgba(106,5,114,0.00)",
+      dot: "#c2185b",
     },
   };
 
@@ -1010,7 +1009,7 @@ function ScheduleSection() {
     "section",
     {
       id: "schedule",
-      style: { padding: "100px 24px", background: "#1D1A39" },
+      style: { padding: "100px 24px", background: "#1a0a2e" },
     },
     React.createElement(
       "div",
@@ -1031,7 +1030,7 @@ function ScheduleSection() {
             top: 0,
             bottom: 0,
             width: 2,
-            background: "linear-gradient(180deg, #F39F5A, #AE445A, #E8BCB9)",
+            background: "linear-gradient(180deg, #e040fb, #c2185b, #f3e5f5)",
             transform: "translateX(-50%)",
             display: "none",
           },
@@ -1089,7 +1088,7 @@ function ScheduleSection() {
                         background: "rgba(255,255,255,0.08)",
                         borderRadius: 999,
                         padding: "2px 10px",
-                        color: "#AE445A",
+                        color: "#c2185b",
                         fontSize: 12,
                         fontWeight: 600,
                       },
@@ -1152,7 +1151,7 @@ function BenefitsSection() {
       style: {
         padding: "100px 24px",
         background:
-          "linear-gradient(135deg, rgba(102,103,171,0.06) 0%, #050510 100%)",
+          "linear-gradient(135deg, rgba(194,24,91,0.06) 0%, #050510 100%)",
       },
     },
     React.createElement(
@@ -1191,8 +1190,8 @@ function BenefitsSection() {
                 transition: "all 0.2s ease",
               },
               onMouseEnter: (e) => {
-                e.currentTarget.style.background = "rgba(102,103,171,0.12)";
-                e.currentTarget.style.borderColor = "rgba(102,103,171,0.3)";
+                e.currentTarget.style.background = "rgba(194,24,91,0.12)";
+                e.currentTarget.style.borderColor = "rgba(194,24,91,0.3)";
               },
               onMouseLeave: (e) => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.03)";
@@ -1251,7 +1250,7 @@ function TestimonialsSection() {
   return React.createElement(
     "section",
     {
-      style: { padding: "100px 24px", background: "#1D1A39" },
+      style: { padding: "100px 24px", background: "#1a0a2e" },
     },
     React.createElement(
       "div",
@@ -1290,7 +1289,7 @@ function TestimonialsSection() {
                 .map((_, j) =>
                   React.createElement(
                     "span",
-                    { key: j, style: { color: "#E8BCB9", fontSize: 14 } },
+                    { key: j, style: { color: "#f3e5f5", fontSize: 14 } },
                     "★",
                   ),
                 ),
@@ -1360,7 +1359,7 @@ function PricingSection({ setPage }) {
       style: {
         padding: "100px 24px",
         background:
-          "linear-gradient(135deg, rgba(102,103,171,0.07) 0%, #050510 100%)",
+          "linear-gradient(135deg, rgba(194,24,91,0.07) 0%, #050510 100%)",
       },
     },
     React.createElement(
@@ -1396,14 +1395,14 @@ function PricingSection({ setPage }) {
               style: {
                 borderRadius: 20,
                 border: isPopular
-                  ? "2px solid #AE445A"
+                  ? "2px solid #c2185b"
                   : isExclusive
-                    ? "2px solid #E8BCB9"
+                    ? "2px solid #f3e5f5"
                     : "1px solid rgba(255,255,255,0.08)",
                 background: isPopular
-                  ? "linear-gradient(135deg, rgba(102,103,171,0.25) 0%, rgba(33,6,53,0.9) 100%)"
+                  ? "linear-gradient(135deg, rgba(194,24,91,0.25) 0%, rgba(106,5,114,0.9) 100%)"
                   : isExclusive
-                    ? "linear-gradient(135deg, rgba(245,213,224,0.15) 0%, rgba(33,6,53,0.9) 100%)"
+                    ? "linear-gradient(135deg, rgba(243,229,245,0.15) 0%, rgba(106,5,114,0.9) 100%)"
                     : "rgba(255,255,255,0.03)",
                 padding: 28,
                 position: "relative",
@@ -1427,7 +1426,7 @@ function PricingSection({ setPage }) {
                   width: 200,
                   height: 200,
                   background:
-                    "radial-gradient(circle, rgba(123,51,126,0.2) 0%, transparent 70%)",
+                    "radial-gradient(circle, rgba(194,24,91,0.2) 0%, transparent 70%)",
                   borderRadius: "50%",
                 },
               }),
@@ -1443,8 +1442,8 @@ function PricingSection({ setPage }) {
                     top: 16,
                     right: 16,
                     background: isPopular
-                      ? "linear-gradient(135deg, #F39F5A, #AE445A)"
-                      : "linear-gradient(135deg, #F39F5A, #E8BCB9)",
+                      ? "linear-gradient(135deg, #e040fb, #c2185b)"
+                      : "linear-gradient(135deg, #e040fb, #f3e5f5)",
                     color: "white",
                     borderRadius: 999,
                     padding: "4px 12px",
@@ -1496,9 +1495,9 @@ function PricingSection({ setPage }) {
                   {
                     style: {
                       color: isPopular
-                        ? "#E8BCB9"
+                        ? "#f3e5f5"
                         : isExclusive
-                          ? "#E8BCB9"
+                          ? "#f3e5f5"
                           : "rgba(255,255,255,0.5)",
                       fontSize: 20,
                       fontWeight: 600,
@@ -1565,7 +1564,7 @@ function PricingSection({ setPage }) {
                     "span",
                     {
                       style: {
-                        color: isExclusive ? "#E8BCB9" : "#F39F5A",
+                        color: isExclusive ? "#f3e5f5" : "#e040fb",
                         fontWeight: 700,
                       },
                     },
@@ -1595,16 +1594,16 @@ function PricingSection({ setPage }) {
                   border: "none",
                   fontFamily: "Inter, sans-serif",
                   background: isPopular
-                    ? "linear-gradient(135deg, #F39F5A, #AE445A)"
+                    ? "linear-gradient(135deg, #e040fb, #c2185b)"
                     : isExclusive
-                      ? "linear-gradient(135deg, #F39F5A, #E8BCB9)"
+                      ? "linear-gradient(135deg, #e040fb, #f3e5f5)"
                       : "rgba(255,255,255,0.08)",
                   color: "white",
                   transition: "all 0.2s ease",
                 },
                 onMouseEnter: (e) => {
                   e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 8px 24px rgba(102,103,171,0.3)";
+                  e.target.style.boxShadow = "0 8px 24px rgba(194,24,91,0.3)";
                 },
                 onMouseLeave: (e) => {
                   e.target.style.transform = "translateY(0)";
@@ -1623,7 +1622,7 @@ function PricingSection({ setPage }) {
         {
           style: {
             textAlign: "center",
-            color: "rgba(245,213,224,0.7)",
+            color: "rgba(243,229,245,0.7)",
             fontSize: 14,
             marginTop: 32,
           },
@@ -1677,7 +1676,7 @@ function FAQSection() {
     "section",
     {
       id: "faq",
-      style: { padding: "100px 24px", background: "#1D1A39" },
+      style: { padding: "100px 24px", background: "#1a0a2e" },
     },
     React.createElement(
       "div",
@@ -1706,9 +1705,9 @@ function FAQSection() {
               style: {
                 background:
                   openIndex === i
-                    ? "rgba(102,103,171,0.1)"
+                    ? "rgba(194,24,91,0.1)"
                     : "rgba(255,255,255,0.03)",
-                border: `1px solid ${openIndex === i ? "rgba(102,103,171,0.3)" : "rgba(255,255,255,0.07)"}`,
+                border: `1px solid ${openIndex === i ? "rgba(194,24,91,0.3)" : "rgba(255,255,255,0.07)"}`,
                 borderRadius: 14,
                 overflow: "hidden",
                 transition: "all 0.2s ease",
@@ -1739,7 +1738,7 @@ function FAQSection() {
                 "span",
                 {
                   style: {
-                    color: "#AE445A",
+                    color: "#c2185b",
                     fontSize: 20,
                     flexShrink: 0,
                     marginLeft: 12,
@@ -1785,8 +1784,8 @@ function CTASection({ setPage }) {
         {
           style: {
             background:
-              "linear-gradient(135deg, rgba(102,103,171,0.3) 0%, rgba(245,213,224,0.2) 100%)",
-            border: "1px solid rgba(123,51,126,0.3)",
+              "linear-gradient(135deg, rgba(194,24,91,0.3) 0%, rgba(243,229,245,0.2) 100%)",
+            border: "1px solid rgba(194,24,91,0.3)",
             borderRadius: 24,
             padding: "60px 40px",
             textAlign: "center",
@@ -1800,7 +1799,7 @@ function CTASection({ setPage }) {
             inset: 0,
             opacity: 0.05,
             backgroundImage:
-              "radial-gradient(circle, #AE445A 1px, transparent 1px)",
+              "radial-gradient(circle, #c2185b 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           },
         }),
@@ -1849,7 +1848,7 @@ function CTASection({ setPage }) {
               {
                 onClick: () => setPage("register"),
                 style: {
-                  background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+                  background: "linear-gradient(135deg, #e040fb, #c2185b)",
                   color: "white",
                   padding: "16px 40px",
                   borderRadius: 14,
@@ -1858,7 +1857,7 @@ function CTASection({ setPage }) {
                   cursor: "pointer",
                   border: "none",
                   fontFamily: "Inter, sans-serif",
-                  boxShadow: "0 8px 32px rgba(102,103,171,0.4)",
+                  boxShadow: "0 8px 32px rgba(194,24,91,0.4)",
                 },
               },
               "🎟️ Register Now",
@@ -1872,7 +1871,7 @@ function CTASection({ setPage }) {
                 style: {
                   background: "rgba(37,211,102,0.2)",
                   border: "1px solid rgba(37,211,102,0.4)",
-                  color: "#F39F5A",
+                  color: "#e040fb",
                   padding: "16px 32px",
                   borderRadius: 14,
                   fontSize: 16,
