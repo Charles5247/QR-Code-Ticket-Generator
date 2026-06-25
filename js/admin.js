@@ -216,7 +216,7 @@ function AdminLogin({ setPage }) {
         ),
 
         // Demo hint
-        React.createElement(
+        /*React.createElement(
           "div",
           {
             style: {
@@ -256,7 +256,7 @@ function AdminLogin({ setPage }) {
             },
             "🧪 Use Demo Credentials",
           ),
-        ),
+        ),*/
       ),
 
       React.createElement(

@@ -88,8 +88,8 @@ const ROUTES = {
   "/": "landing",
   "/register": "register",
   "/ticket": "ticket",
-  "/admin": "admin",
-  "/admin/login": "admin-login",
+  "/admin": "admin-login",
+  //"/admin/login": "admin-login",
   "/scanner": "scanner",
 };
 
@@ -97,7 +97,7 @@ const HASH_MAP = {
   landing: "/",
   register: "/register",
   ticket: "/ticket",
-  "admin-login": "/admin/login",
+  "admin-login": "/admin",
   admin: "/admin",
   scanner: "/scanner",
 };
