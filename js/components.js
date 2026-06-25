@@ -508,21 +508,22 @@ function Footer({ setPage }) {
           { style: { color: "rgba(255,255,255,0.3)", fontSize: 13 } },
           `© 2026 MC FABS Masterclass. All rights reserved.`,
         ),
-        /*React.createElement(
-          "button",
+        React.createElement(
+          "a",
           {
-            onClick: () => setPage("admin-login"),
+            href: "https://caxie-technologies.netlify.app/",
+            target: "_blank",
+            rel: "noopener noreferrer",
             style: {
-              background: "none",
-              border: "none",
               color: "rgba(255,255,255,0.3)",
               fontSize: 13,
               cursor: "pointer",
               fontFamily: "Inter, sans-serif",
+              textDecoration: "none",
             },
           },
-          "🔐 Admin Portal",
-        ),*/
+          "Developed by CAXiE Technologies Ltd",
+        ),
       ),
     ),
   );
