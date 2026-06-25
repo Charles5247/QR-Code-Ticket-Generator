@@ -164,7 +164,6 @@ const DemoStore = {
 
 // ─── Database Service ──────────────────────────────────────────────────────────
 const DB = {
-  // Get count of attendees by category for seat assignment
   async getAttendeeCount(category) {
     if (DEMO_MODE) {
       return DemoStore.getAll().filter((a) => a.ticket_category === category)
@@ -178,7 +177,6 @@ const DB = {
     return count || 0;
   },
 
-  // Create new attendee registration
   async createAttendee(data) {
     if (DEMO_MODE) {
       const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
@@ -211,8 +209,8 @@ const DB = {
     const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
     const prefix = ticket ? ticket.prefix : "GEN";
     const count = (await this.getAttendeeCount(data.ticket_category)) + 1;
-    const ticket_code = `MCFABS-2026-${prefix}-${String(count).padStart(4, "0")}`;
-    const seat_number = `${prefix}-${String(count).padStart(3, "0")}`;
+    const ticket_code = generateTicketCode(prefix, count);
+    const seat_number = generateSeatNumber(prefix, count);
 
     const insertData = {
       ...data,
@@ -252,7 +250,6 @@ const DB = {
     return response;
   },
 
-  // Update payment after Paystack confirmation
   async confirmPayment(attendeeId, paymentData) {
     if (DEMO_MODE) {
       const updated = DemoStore.update(attendeeId, {
@@ -277,7 +274,6 @@ const DB = {
       .single();
   },
 
-  // Update QR code URL
   async updateQRCode(attendeeId, qrUrl) {
     if (DEMO_MODE) {
       DemoStore.update(attendeeId, { qr_code_url: qrUrl });
@@ -290,7 +286,6 @@ const DB = {
       .eq("id", attendeeId);
   },
 
-  // Get all attendees (admin)
   async getAllAttendees() {
     if (DEMO_MODE) {
       return { data: DemoStore.getAll(), error: null };
@@ -302,7 +297,6 @@ const DB = {
       .order("created_at", { ascending: false });
   },
 
-  // Get attendee by ticket code (scanner)
   async getByTicketCode(code) {
     if (DEMO_MODE) {
       const found = DemoStore.getByTicketCode(code);
@@ -316,7 +310,6 @@ const DB = {
       .single();
   },
 
-  // Check in attendee
   async checkIn(attendeeId, currentAttempts = 0) {
     const nextAttempts = (currentAttempts || 0) + 1;
     const scanData = {
@@ -384,7 +377,6 @@ const DB = {
     return response;
   },
 
-  // Get analytics data
   async getAnalytics() {
     const { data: attendees } = await this.getAllAttendees();
     if (!attendees) return {};
@@ -406,7 +398,6 @@ const DB = {
       return acc;
     }, {});
 
-    // Daily registrations (last 7 days)
     const days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -450,7 +441,12 @@ const Auth = {
       return { data: null, error: { message: "Invalid credentials" } };
     }
     const db = getSupabase();
-    return await db.auth.signInWithPassword({ email, password });
+    const result = await db.auth.signInWithPassword({ email, password });
+    if (!result.error) {
+      // Store session flag so isAuthenticated() works across page navigations
+      sessionStorage.setItem("mcfabs_admin", "true");
+    }
+    return result;
   },
 
   async signOut() {
@@ -461,9 +457,9 @@ const Auth = {
     }
   },
 
+  // Works for both demo mode and live Supabase mode
   isAuthenticated() {
-    if (DEMO_MODE) return sessionStorage.getItem("mcfabs_admin") === "true";
-    return false;
+    return sessionStorage.getItem("mcfabs_admin") === "true";
   },
 };
 

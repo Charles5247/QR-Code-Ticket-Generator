@@ -31,7 +31,7 @@ function SplashScreen() {
           fontSize: 40,
           fontWeight: 900,
           color: "white",
-          boxShadow: "0 0 40px rgba(102,103,171,0.5)",
+          boxShadow: "0 0 40px rgba(194,24,91,0.5)",
           animation: "float 2s ease-in-out infinite",
         },
       },
@@ -56,7 +56,7 @@ function SplashScreen() {
         "div",
         {
           style: {
-            color: "rgba(166, 105, 168, 0.88)",
+            color: "rgba(194,24,91,0.88)",
             fontSize: 14,
             marginTop: 4,
           },
@@ -74,7 +74,7 @@ function SplashScreen() {
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: "#c2185b)",
+            background: "#c2185b",
             animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
           },
         }),
@@ -83,45 +83,74 @@ function SplashScreen() {
   );
 }
 
+const ROUTES = {
+  "": "landing",
+  "/": "landing",
+  "/register": "register",
+  "/ticket": "ticket",
+  "/admin": "admin",
+  "/admin/login": "admin-login",
+  "/scanner": "scanner",
+};
+
+const HASH_MAP = {
+  landing: "/",
+  register: "/register",
+  ticket: "/ticket",
+  "admin-login": "/admin/login",
+  admin: "/admin",
+  scanner: "/scanner",
+};
+
+function getPageFromHash() {
+  const hash = window.location.hash.replace("#", "") || "/";
+  return ROUTES[hash] || "landing";
+}
+
 function App() {
   const [page, setPage] = React.useState("landing");
   const [ready, setReady] = React.useState(false);
 
-  // ── ALL hooks must be called unconditionally (Rules of Hooks) ──────────────
+  // Splash delay
   React.useEffect(() => {
     const t = setTimeout(() => setReady(true), 600);
     return () => clearTimeout(t);
   }, []);
 
+  // On ready: read hash and set initial page
   React.useEffect(() => {
     if (!ready) return;
-    const routes = {
-      "": "landing",
-      "/": "landing",
-      "/register": "register",
-      "/ticket": "ticket",
-      "/admin": "admin",
-      "/admin/login": "admin-login",
-      "/scanner": "scanner",
-    };
-    const hash = window.location.hash.replace("#", "") || "/";
-    const matched = routes[hash];
-    if (matched) setPage(matched);
+    setPage(getPageFromHash());
   }, [ready]);
 
+  // Listen for back/forward browser navigation
   React.useEffect(() => {
     if (!ready) return;
-    const hashMap = {
-      landing: "/",
-      register: "/register",
-      ticket: "/ticket",
-      "admin-login": "/admin/login",
-      admin: "/admin",
-      scanner: "/scanner",
-    };
-    window.location.hash = hashMap[page] || "/";
+    const onHashChange = () => setPage(getPageFromHash());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, [ready]);
+
+  // Update URL when page changes (but don't re-trigger hashchange)
+  React.useEffect(() => {
+    if (!ready) return;
+    const newHash = "#" + (HASH_MAP[page] || "/");
+    if (window.location.hash !== newHash) {
+      window.location.hash = newHash;
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page, ready]);
+
+  // Secret keyboard shortcut: Ctrl+Shift+A → admin login
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+        setPage("admin-login");
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   if (!ready) return React.createElement(SplashScreen);
 
