@@ -362,7 +362,7 @@ function HeroSection({ setPage }) {
                       fontStyle: "italic",
                     },
                   },
-                  "MC FABS.ng",
+                  "mc fabs.ng",
                 ),
                 React.createElement(
                   "p",
@@ -392,7 +392,7 @@ function HeroSection({ setPage }) {
               [
                 { num: "5+", label: "Years Experience" },
                 { num: "100+", label: "Events Hosted" },
-                { num: "50K+", label: "Followers" },
+                { num: "25K+", label: "Followers" },
                 { num: "100%", label: "Satisfaction" },
               ].map((s) =>
                 React.createElement(
@@ -636,6 +636,11 @@ function AboutSection() {
             desc: "Discover the body language secrets and confidence-building strategies used by top-tier event hosts worldwide.",
           },
           {
+            icon: "💡",
+            title: "Business of Event Hosting",
+            desc: "Turn your passion into profit — learn how to price your services, secure clients, and scale your MC career.",
+          },
+          {
             icon: "📱",
             title: "Branding and Positioning yourself in the Industry",
             desc: "Build your personal brand as a host, speaker, or MC across traditional and digital media platforms.",
@@ -645,11 +650,7 @@ function AboutSection() {
             title: "How to attract Opportunities as you grow your brand",
             desc: "Connect with fellow professionals, entrepreneurs, and creatives from across Northern Nigeria and beyond to know the secrets.",
           },
-          {
-            icon: "💡",
-            title: "Business of Event Hosting",
-            desc: "Turn your passion into profit — learn how to price your services, secure clients, and scale your MC career.",
-          },
+
           {
             icon: "🏆",
             title: "Certification & Recognition",
@@ -863,7 +864,7 @@ function SpeakerSection() {
                   marginBottom: 20,
                 },
               },
-              "Faith Abah, popularly known as MC FABS, is Kano's premier event host and media personality with over a decade of experience commanding stages across Northern Nigeria. From state ceremonies to corporate galas, from weddings to media broadcasts — her electrifying presence and unmatched professionalism have made her the most sought-after MC in the region.",
+              "Faith Abah, popularly known as MC FABS, is Kano's premier event host and media personality with over a decade of experience commanding stages across Northern Nigeria. From state ceremonies to corporate galas, from Red Carpet Host to Event Compere — her electrifying presence and unmatched professionalism have made her the most sought-after MC in the region.",
             ),
             React.createElement(
               "p",
@@ -1723,7 +1724,7 @@ function FAQSection() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "18px 22px",
-                  background: "none",
+                  background: "rgba(194, 24, 92, 0.12)",
                   border: "none",
                   color: "white",
                   fontSize: 15,
