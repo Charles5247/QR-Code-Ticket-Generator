@@ -23,7 +23,7 @@ function SplashScreen() {
         style: {
           width: 80,
           height: 80,
-          background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+          background: "linear-gradient(135deg, #e040fb, #c2185b)",
           borderRadius: 20,
           display: "flex",
           alignItems: "center",
@@ -55,7 +55,11 @@ function SplashScreen() {
       React.createElement(
         "div",
         {
-          style: { color: "rgba(123,51,126,0.7)", fontSize: 14, marginTop: 4 },
+          style: {
+            color: "rgba(166, 105, 168, 0.88)",
+            fontSize: 14,
+            marginTop: 4,
+          },
         },
         "Loading event...",
       ),
@@ -70,7 +74,7 @@ function SplashScreen() {
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: "#F39F5A",
+            background: "#c2185b)",
             animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
           },
         }),

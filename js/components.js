@@ -673,7 +673,7 @@ function CountdownWidget() {
           {
             style: {
               fontSize: 11,
-              color: "rgba(194,24,91,0.8)",
+              color: "rgb(243, 117, 167)",
               marginTop: 4,
               letterSpacing: "0.1em",
               textTransform: "uppercase",

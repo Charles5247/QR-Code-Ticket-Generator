@@ -44,7 +44,7 @@ function AdminLogin({ setPage }) {
     {
       style: {
         minHeight: "100vh",
-        background: "#1D1A39",
+        background: "#1a0a2e",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -66,7 +66,7 @@ function AdminLogin({ setPage }) {
               width: 72,
               height: 72,
               margin: "0 auto 16px",
-              background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+              background: "linear-gradient(135deg, #e040fb, #c2185b)",
               borderRadius: 18,
               display: "flex",
               alignItems: "center",
@@ -105,8 +105,8 @@ function AdminLogin({ setPage }) {
         {
           style: {
             background:
-              "linear-gradient(135deg, rgba(102,103,171,0.12) 0%, rgba(33,6,53,0.95) 100%)",
-            border: "1px solid rgba(123,51,126,0.2)",
+              "linear-gradient(135deg, rgba(194,24,91,0.12) 0%, rgba(106,5,114,0.95) 100%)",
+            border: "1px solid rgba(194,24,91,0.2)",
             borderRadius: 20,
             padding: "32px 28px",
           },
@@ -195,8 +195,8 @@ function AdminLogin({ setPage }) {
                 padding: "14px 0",
                 borderRadius: 12,
                 background: loading
-                  ? "rgba(102,103,171,0.5)"
-                  : "linear-gradient(135deg, #F39F5A, #AE445A)",
+                  ? "rgba(194,24,91,0.5)"
+                  : "linear-gradient(135deg, #e040fb, #c2185b)",
                 color: "white",
                 fontSize: 16,
                 fontWeight: 700,
@@ -220,8 +220,8 @@ function AdminLogin({ setPage }) {
           "div",
           {
             style: {
-              background: "rgba(245,213,224,0.08)",
-              border: "1px solid rgba(245,213,224,0.2)",
+              background: "rgba(243,229,245,0.08)",
+              border: "1px solid rgba(243,229,245,0.2)",
               borderRadius: 10,
               padding: "12px 16px",
               marginTop: 8,
@@ -243,9 +243,9 @@ function AdminLogin({ setPage }) {
             {
               onClick: useDemo,
               style: {
-                background: "rgba(245,213,224,0.15)",
-                border: "1px solid rgba(245,213,224,0.3)",
-                color: "#E8BCB9",
+                background: "rgba(243,229,245,0.15)",
+                border: "1px solid rgba(243,229,245,0.3)",
+                color: "#f3e5f5",
                 padding: "6px 14px",
                 borderRadius: 8,
                 cursor: "pointer",
@@ -323,7 +323,6 @@ function AdminDashboard({ setPage }) {
   const renderCharts = () => {
     if (!analytics) return;
 
-    // Destroy existing charts
     if (window._mcfabs_chart1) {
       window._mcfabs_chart1.destroy();
     }
@@ -342,12 +341,12 @@ function AdminDashboard({ setPage }) {
             {
               label: "Registrations",
               data: analytics.dailyRegistrations.map((d) => d.count),
-              borderColor: "#AE445A",
-              backgroundColor: "rgba(123,51,126,0.1)",
+              borderColor: "#c2185b",
+              backgroundColor: "rgba(194,24,91,0.1)",
               borderWidth: 2,
               fill: true,
               tension: 0.4,
-              pointBackgroundColor: "#F39F5A",
+              pointBackgroundColor: "#e040fb",
               pointBorderColor: "#fff",
               pointBorderWidth: 2,
               pointRadius: 5,
@@ -391,11 +390,11 @@ function AdminDashboard({ setPage }) {
             {
               data: categories.map((c) => c.count),
               backgroundColor: [
-                "rgba(100,100,130,0.8)",
-                "rgba(102,103,171,0.8)",
-                "rgba(245,213,224,0.8)",
+                "rgba(139,0,93,0.8)",
+                "rgba(194,24,91,0.8)",
+                "rgba(243,229,245,0.8)",
               ],
-              borderColor: ["#1D1A39", "#1D1A39", "#1D1A39"],
+              borderColor: ["#1a0a2e", "#1a0a2e", "#1a0a2e"],
               borderWidth: 2,
             },
           ],
@@ -436,7 +435,7 @@ function AdminDashboard({ setPage }) {
       {
         style: {
           minHeight: "100vh",
-          background: "#1D1A39",
+          background: "#1a0a2e",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -466,7 +465,7 @@ function AdminDashboard({ setPage }) {
     {
       style: {
         minHeight: "100vh",
-        background: "#1D1A39",
+        background: "#1a0a2e",
         display: "flex",
         flexDirection: "column",
       },
@@ -497,7 +496,7 @@ function AdminDashboard({ setPage }) {
             style: {
               width: 36,
               height: 36,
-              background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+              background: "linear-gradient(135deg, #e040fb, #c2185b)",
               borderRadius: 8,
               display: "flex",
               alignItems: "center",
@@ -549,9 +548,9 @@ function AdminDashboard({ setPage }) {
           {
             onClick: () => setPage("scanner"),
             style: {
-              background: "rgba(102,103,171,0.15)",
-              border: "1px solid rgba(102,103,171,0.3)",
-              color: "#F39F5A",
+              background: "rgba(194,24,91,0.15)",
+              border: "1px solid rgba(194,24,91,0.3)",
+              color: "#e040fb",
               padding: "7px 14px",
               borderRadius: 8,
               cursor: "pointer",
@@ -603,12 +602,12 @@ function AdminDashboard({ setPage }) {
               padding: "14px 20px",
               background: "none",
               border: "none",
-              color: activeTab === tab.id ? "#AE445A" : "rgba(255,255,255,0.4)",
+              color: activeTab === tab.id ? "#c2185b" : "rgba(255,255,255,0.4)",
               fontSize: 14,
               fontWeight: activeTab === tab.id ? 600 : 400,
               cursor: "pointer",
               fontFamily: "Inter, sans-serif",
-              borderBottom: `2px solid ${activeTab === tab.id ? "#F39F5A" : "transparent"}`,
+              borderBottom: `2px solid ${activeTab === tab.id ? "#e040fb" : "transparent"}`,
               transition: "all 0.2s ease",
             },
           },
@@ -654,48 +653,48 @@ function AdminOverview({ analytics }) {
       label: "Total Registrations",
       value: analytics.total,
       icon: "👥",
-      color: "#AE445A",
-      bg: "rgba(123,51,126,0.1)",
+      color: "#c2185b",
+      bg: "rgba(194,24,91,0.1)",
       change: "+12% this week",
     },
     {
       label: "Paid Attendees",
       value: analytics.paid,
       icon: "✅",
-      color: "#F39F5A",
-      bg: "rgba(102,103,171,0.1)",
+      color: "#e040fb",
+      bg: "rgba(224,64,251,0.1)",
       change: `${analytics.total ? Math.round((analytics.paid / analytics.total) * 100) : 0}% conversion`,
     },
     {
       label: "Pending Payment",
       value: analytics.pending,
       icon: "⏳",
-      color: "#E8BCB9",
-      bg: "rgba(245,213,224,0.1)",
+      color: "#f3e5f5",
+      bg: "rgba(243,229,245,0.1)",
       change: "Awaiting payment",
     },
     {
       label: "Checked In",
       value: analytics.checkedIn,
       icon: "🎯",
-      color: "#F39F5A",
-      bg: "rgba(102,103,171,0.1)",
+      color: "#e040fb",
+      bg: "rgba(224,64,251,0.1)",
       change: `${analytics.paid ? Math.round((analytics.checkedIn / analytics.paid) * 100) : 0}% of paid`,
     },
     {
       label: "Duplicate Scan Attempts",
       value: analytics.duplicateScanAttempts || 0,
       icon: "⚠️",
-      color: "#E8BCB9",
-      bg: "rgba(245,213,224,0.1)",
+      color: "#f3e5f5",
+      bg: "rgba(243,229,245,0.1)",
       change: "Tickets scanned more than once",
     },
     {
       label: "Total Revenue",
       value: formatCurrency(analytics.revenue),
       icon: "💰",
-      color: "#E8BCB9",
-      bg: "rgba(245,213,224,0.1)",
+      color: "#f3e5f5",
+      bg: "rgba(243,229,245,0.1)",
       change: "Gross revenue",
     },
     {
@@ -704,8 +703,8 @@ function AdminOverview({ analytics }) {
         ? formatCurrency(Math.round(analytics.revenue / analytics.paid))
         : "₦0",
       icon: "📊",
-      color: "#AE445A",
-      bg: "rgba(123,51,126,0.1)",
+      color: "#c2185b",
+      bg: "rgba(194,24,91,0.1)",
       change: "Per paid seat",
     },
   ];
@@ -912,11 +911,11 @@ function AdminOverview({ analytics }) {
               key: ticket.id,
               style: {
                 background: isPremium
-                  ? "rgba(245,213,224,0.08)"
+                  ? "rgba(243,229,245,0.08)"
                   : isVip
-                    ? "rgba(102,103,171,0.1)"
+                    ? "rgba(224,64,251,0.1)"
                     : "rgba(255,255,255,0.04)",
-                border: `1px solid ${isPremium ? "rgba(245,213,224,0.2)" : isVip ? "rgba(102,103,171,0.2)" : "rgba(255,255,255,0.08)"}`,
+                border: `1px solid ${isPremium ? "rgba(243,229,245,0.2)" : isVip ? "rgba(224,64,251,0.2)" : "rgba(255,255,255,0.08)"}`,
                 borderRadius: 14,
                 padding: "18px 20px",
               },
@@ -941,14 +940,14 @@ function AdminOverview({ analytics }) {
                 {
                   style: {
                     background: isPremium
-                      ? "rgba(245,213,224,0.2)"
+                      ? "rgba(243,229,245,0.2)"
                       : isVip
-                        ? "rgba(102,103,171,0.2)"
+                        ? "rgba(224,64,251,0.2)"
                         : "rgba(255,255,255,0.08)",
                     color: isPremium
-                      ? "#E8BCB9"
+                      ? "#f3e5f5"
                       : isVip
-                        ? "#AE445A"
+                        ? "#c2185b"
                         : "rgba(255,255,255,0.5)",
                     borderRadius: 999,
                     padding: "2px 10px",
@@ -976,7 +975,7 @@ function AdminOverview({ analytics }) {
               ),
               React.createElement(
                 "span",
-                { style: { color: "#F39F5A", fontWeight: 600 } },
+                { style: { color: "#e040fb", fontWeight: 600 } },
                 formatCurrency(revenue),
               ),
             ),
@@ -995,9 +994,9 @@ function AdminOverview({ analytics }) {
                   height: "100%",
                   width: `${Math.min(pct, 100)}%`,
                   background: isPremium
-                    ? "#E8BCB9"
+                    ? "#f3e5f5"
                     : isVip
-                      ? "#F39F5A"
+                      ? "#e040fb"
                       : "#6b7280",
                   borderRadius: 2,
                   transition: "width 0.5s ease",
@@ -1116,7 +1115,7 @@ function AdminOverview({ analytics }) {
                     "span",
                     {
                       style: {
-                        color: "#F39F5A",
+                        color: "#e040fb",
                         fontWeight: 600,
                         fontSize: 13,
                       },
@@ -1160,7 +1159,6 @@ function AdminAttendees({ analytics, onRefresh }) {
 
   const attendees = analytics.attendees || [];
 
-  // Filter & search
   const filtered = attendees.filter((a) => {
     const matchSearch =
       !search ||
@@ -1174,7 +1172,6 @@ function AdminAttendees({ analytics, onRefresh }) {
     return matchSearch && matchStatus && matchCat;
   });
 
-  // Sort
   const sorted = [...filtered].sort((a, b) => {
     let av = a[sortField] || "";
     let bv = b[sortField] || "";
@@ -1221,7 +1218,6 @@ function AdminAttendees({ analytics, onRefresh }) {
           alignItems: "center",
         },
       },
-      // Search
       React.createElement(
         "div",
         { style: { flex: 1, minWidth: 200, position: "relative" } },
@@ -1250,7 +1246,6 @@ function AdminAttendees({ analytics, onRefresh }) {
         }),
       ),
 
-      // Status filter
       React.createElement(
         "select",
         {
@@ -1267,7 +1262,6 @@ function AdminAttendees({ analytics, onRefresh }) {
         React.createElement("option", { value: "pending" }, "⏳ Pending"),
       ),
 
-      // Category filter
       React.createElement(
         "select",
         {
@@ -1285,15 +1279,14 @@ function AdminAttendees({ analytics, onRefresh }) {
         ),
       ),
 
-      // Export
       React.createElement(
         "button",
         {
           onClick: handleExport,
           style: {
-            background: "rgba(102,103,171,0.15)",
-            border: "1px solid rgba(102,103,171,0.3)",
-            color: "#F39F5A",
+            background: "rgba(194,24,91,0.15)",
+            border: "1px solid rgba(194,24,91,0.3)",
+            color: "#e040fb",
             padding: "10px 18px",
             borderRadius: 10,
             cursor: "pointer",
@@ -1307,7 +1300,6 @@ function AdminAttendees({ analytics, onRefresh }) {
       ),
     ),
 
-    // Results count
     React.createElement(
       "div",
       {
@@ -1450,9 +1442,9 @@ function AdminAttendees({ analytics, onRefresh }) {
                         "code",
                         {
                           style: {
-                            color: "#E8BCB9",
+                            color: "#f3e5f5",
                             fontSize: 12,
-                            background: "rgba(123,51,126,0.1)",
+                            background: "rgba(194,24,91,0.1)",
                             padding: "2px 6px",
                             borderRadius: 4,
                           },
@@ -1467,7 +1459,7 @@ function AdminAttendees({ analytics, onRefresh }) {
                         "span",
                         {
                           style: {
-                            color: "#E8BCB9",
+                            color: "#f3e5f5",
                             fontWeight: 600,
                             fontSize: 13,
                           },
@@ -1505,7 +1497,7 @@ function AdminAttendees({ analytics, onRefresh }) {
                           style: {
                             color:
                               a.amount_paid > 0
-                                ? "#F39F5A"
+                                ? "#e040fb"
                                 : "rgba(255,255,255,0.3)",
                             fontWeight: 600,
                             fontSize: 13,
@@ -1525,7 +1517,7 @@ function AdminAttendees({ analytics, onRefresh }) {
                               "span",
                               {
                                 style: {
-                                  color: "#F39F5A",
+                                  color: "#e040fb",
                                   fontSize: 13,
                                   fontWeight: 600,
                                 },
@@ -1581,7 +1573,7 @@ function AdminAttendees({ analytics, onRefresh }) {
                         {
                           style: {
                             color: a.last_scan_status
-                              ? "#E8BCB9"
+                              ? "#f3e5f5"
                               : "rgba(255,255,255,0.3)",
                             fontSize: 13,
                             fontWeight: 600,
@@ -1715,25 +1707,25 @@ function AdminAnalytics({ analytics }) {
           label: "Conversion Rate",
           value: `${conversionPct}%`,
           desc: "Registered → Paid",
-          color: "#F39F5A",
+          color: "#e040fb",
         },
         {
           label: "Check-in Rate",
           value: `${checkedInPct}%`,
           desc: "Paid → Checked In",
-          color: "#F39F5A",
+          color: "#e040fb",
         },
         {
           label: "Gross Revenue",
           value: formatCurrency(analytics.revenue),
           desc: "Total collected",
-          color: "#E8BCB9",
+          color: "#f3e5f5",
         },
         {
           label: "Remaining Seats",
           value: 260 - analytics.total,
           desc: "Out of 260 total",
-          color: "#AE445A",
+          color: "#c2185b",
         },
       ].map((k, i) =>
         React.createElement(
@@ -1849,7 +1841,7 @@ function AdminAnalytics({ analytics }) {
                 React.createElement(
                   "span",
                   {
-                    style: { color: "#F39F5A", fontWeight: 700, fontSize: 15 },
+                    style: { color: "#e040fb", fontWeight: 700, fontSize: 15 },
                   },
                   formatCurrency(cat.revenue),
                 ),
@@ -1877,8 +1869,8 @@ function AdminAnalytics({ analytics }) {
                     i === 0
                       ? "#6b7280"
                       : i === 1
-                        ? "linear-gradient(90deg, #F39F5A, #AE445A)"
-                        : "linear-gradient(90deg, #F39F5A, #E8BCB9)",
+                        ? "linear-gradient(90deg, #e040fb, #c2185b)"
+                        : "linear-gradient(90deg, #e040fb, #f3e5f5)",
                   borderRadius: 4,
                   transition: "width 0.8s ease",
                 },
@@ -1889,7 +1881,7 @@ function AdminAnalytics({ analytics }) {
       ),
     ),
 
-    // Gender breakdown (if available)
+    // Attendee breakdown
     React.createElement(
       "div",
       {
@@ -1925,7 +1917,7 @@ function AdminAnalytics({ analytics }) {
           {
             label: "Male",
             count: attendees.filter((a) => a.gender === "Male").length,
-            color: "#F39F5A",
+            color: "#e040fb",
             icon: "👨",
           },
           {
@@ -1939,13 +1931,13 @@ function AdminAnalytics({ analytics }) {
             count: attendees.filter((a) =>
               ["vip", "premium"].includes(a.ticket_category),
             ).length,
-            color: "#AE445A",
+            color: "#c2185b",
             icon: "⭐",
           },
           {
             label: "With Requests",
             count: attendees.filter((a) => a.special_requests).length,
-            color: "#E8BCB9",
+            color: "#f3e5f5",
             icon: "📝",
           },
         ].map((s, i) =>
