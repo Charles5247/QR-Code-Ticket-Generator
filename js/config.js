@@ -22,7 +22,7 @@ const CONFIG = {
     eventDate: new Date("2026-09-12T10:00:00"),
     instagram: "https://www.instagram.com/mcfabs.ng/",
     whatsapp: "https://wa.me/2347061647118",
-    email: "info@mcfabs.ng",
+    email: "faithabaheleojo@gmail.com",
   },
 
   // ── Ticket Categories ─────────────────────────────────────
