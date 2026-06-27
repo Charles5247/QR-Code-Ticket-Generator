@@ -1634,6 +1634,7 @@ function PricingSection({ setPage }) {
               display: "flex",
               flexDirection: "column",
               gap: 24,
+              height: "100vh",
             },
           },
           CONFIG.TICKETS.map((ticket, i) => {
@@ -1818,6 +1819,7 @@ function PricingSection({ setPage }) {
                   },
                   style: {
                     width: "100%",
+
                     padding: "14px 0",
                     borderRadius: 12,
                     fontSize: 15,
@@ -1877,7 +1879,7 @@ function PricingSection({ setPage }) {
           React.createElement("img", {
             src: "theme-poster.jpg",
             alt: "MC FABS Masterclass Theme Poster",
-            style: { width: "100%", display: "block" },
+            style: { width: "100%", height: "70vh", display: "block" },
           }),
           // Poster footer CTA
           React.createElement(
