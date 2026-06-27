@@ -4,13 +4,12 @@
 
 function RegisterPage({ setPage }) {
   const toast = useToast();
-  const [step, setStep] = React.useState(1); // 1=form, 2=payment, 3=success
+  const [step, setStep] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
   const [attendee, setAttendee] = React.useState(null);
   const [pdfDataUri, setPdfDataUri] = React.useState(null);
   const [qrDataUrl, setQrDataUrl] = React.useState(null);
 
-  // Pre-selected ticket from landing page
   const preSelected =
     sessionStorage.getItem("mcfabs_selected_ticket") || "general";
 
@@ -29,7 +28,6 @@ function RegisterPage({ setPage }) {
     (t) => t.id === form.ticket_category,
   );
 
-  // ── Validation ────────────────────────────────────────────
   const validate = () => {
     const errs = {};
     if (!form.full_name.trim() || form.full_name.trim().length < 3)
@@ -44,7 +42,6 @@ function RegisterPage({ setPage }) {
     return Object.keys(errs).length === 0;
   };
 
-  // ── Handle form submit ────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
@@ -76,7 +73,7 @@ function RegisterPage({ setPage }) {
     }
   };
 
-  // ── Handle Paystack payment ───────────────────────────────
+  // ── Paystack + Zainpay payment ────────────────────────────
   const handlePayment = async () => {
     if (!attendee) return;
     setLoading(true);
@@ -86,11 +83,9 @@ function RegisterPage({ setPage }) {
       await PaystackPay.initialize(
         attendee,
         async (paymentData) => {
-          // Payment successful
           console.info("Paystack success callback", paymentData);
           toast.loading("Confirming payment...");
           const confirmRes = await DB.confirmPayment(attendee.id, paymentData);
-          // Support both { data } and direct object return shapes
           const updated =
             confirmRes && confirmRes.data ? confirmRes.data : confirmRes;
           const updatedAttendee = updated || {
@@ -100,18 +95,15 @@ function RegisterPage({ setPage }) {
           };
           setAttendee(updatedAttendee);
 
-          // Generate QR code
           toast.info("Generating your QR code...");
           const qrUrl = await QRGen.generate(updatedAttendee);
           setQrDataUrl(qrUrl);
           if (qrUrl) await DB.updateQRCode(updatedAttendee.id, qrUrl);
 
-          // Generate PDF ticket
           toast.info("Generating your PDF ticket...");
           const pdf = await PDFTicket.generate(updatedAttendee);
           setPdfDataUri(pdf);
 
-          // Send confirmation email
           await EmailService.sendTicketEmail(updatedAttendee);
 
           toast.success("🎉 Payment confirmed! Your ticket is ready!");
@@ -132,7 +124,6 @@ function RegisterPage({ setPage }) {
     }
   };
 
-  // ── Demo payment (no Paystack configured) ────────────────
   const handleDemoPayment = async () => {
     setLoading(true);
     toast.loading("Processing demo payment...");
@@ -141,15 +132,13 @@ function RegisterPage({ setPage }) {
 
     const paymentData = {
       reference: `DEMO-${Date.now()}`,
-      amount: selectedTicket ? selectedTicket.price : 15000,
+      amount: selectedTicket ? selectedTicket.price : 30000,
       status: "paid",
     };
 
     try {
       if (!attendee) throw new Error("No attendee found for demo payment");
-      console.info("Simulating demo payment", paymentData, "for", attendee.id);
       const confirmRes = await DB.confirmPayment(attendee.id, paymentData);
-      console.info("confirmRes:", confirmRes);
       const updated =
         confirmRes && confirmRes.data ? confirmRes.data : confirmRes;
       const updatedAttendee = updated || {
@@ -157,23 +146,17 @@ function RegisterPage({ setPage }) {
         ...paymentData,
         payment_status: "paid",
       };
-      console.info("updatedAttendee:", updatedAttendee);
       setAttendee(updatedAttendee);
 
-      // Generate QR code (safe)
       let qrUrl = null;
       try {
         qrUrl = await QRGen.generate(updatedAttendee);
         setQrDataUrl(qrUrl);
-        if (qrUrl) {
-          const qrRes = await DB.updateQRCode(updatedAttendee.id, qrUrl);
-          console.info("updateQRCode result:", qrRes);
-        }
+        if (qrUrl) await DB.updateQRCode(updatedAttendee.id, qrUrl);
       } catch (err) {
         console.error("QR generation/update failed", err);
       }
 
-      // Generate PDF ticket (safe)
       try {
         const pdf = await PDFTicket.generate(updatedAttendee);
         setPdfDataUri(pdf);
@@ -181,10 +164,8 @@ function RegisterPage({ setPage }) {
         console.error("PDF generation failed", err);
       }
 
-      // Send confirmation email (safe)
       try {
-        const emailRes = await EmailService.sendTicketEmail(updatedAttendee);
-        console.info("EmailService.sendTicketEmail result:", emailRes);
+        await EmailService.sendTicketEmail(updatedAttendee);
       } catch (err) {
         console.error("Email send failed", err);
       }
@@ -205,12 +186,11 @@ function RegisterPage({ setPage }) {
     {
       style: {
         minHeight: "100vh",
-        background: "#1D1A39",
+        background: "#1a0a2e",
         paddingTop: 80,
         paddingBottom: 60,
       },
     },
-    // Back button
     React.createElement(
       "div",
       { className: "max-w-3xl mx-auto px-4", style: { marginBottom: 24 } },
@@ -265,7 +245,7 @@ function RegisterPage({ setPage }) {
                     justifyContent: "center",
                     background:
                       step >= s.n
-                        ? "linear-gradient(135deg, #F39F5A, #AE445A)"
+                        ? "linear-gradient(135deg, #e040fb, #c2185b)"
                         : "rgba(255,255,255,0.08)",
                     color: step >= s.n ? "white" : "rgba(255,255,255,0.3)",
                     fontWeight: 700,
@@ -295,7 +275,7 @@ function RegisterPage({ setPage }) {
                   height: 1,
                   background:
                     step > s.n
-                      ? "rgba(102,103,171,0.5)"
+                      ? "rgba(194,24,91,0.5)"
                       : "rgba(255,255,255,0.1)",
                   minWidth: 20,
                 },
@@ -305,7 +285,6 @@ function RegisterPage({ setPage }) {
       ),
     ),
 
-    // Step content
     step === 1 &&
       React.createElement(RegistrationForm, {
         form,
@@ -347,7 +326,6 @@ function RegistrationForm({
   return React.createElement(
     "div",
     { className: "max-w-3xl mx-auto px-4 page-enter" },
-    // Header
     React.createElement(
       "div",
       { style: { textAlign: "center", marginBottom: 40 } },
@@ -379,8 +357,8 @@ function RegistrationForm({
         {
           style: {
             background:
-              "linear-gradient(135deg, rgba(102,103,171,0.1) 0%, rgba(33,6,53,0.9) 100%)",
-            border: "1px solid rgba(123,51,126,0.2)",
+              "linear-gradient(135deg, rgba(194,24,91,0.1) 0%, rgba(106,5,114,0.9) 100%)",
+            border: "1px solid rgba(194,24,91,0.2)",
             borderRadius: 20,
             padding: "32px 28px",
             marginBottom: 24,
@@ -399,7 +377,6 @@ function RegistrationForm({
           "👤 Personal Information",
         ),
 
-        // Row 1: Name + Email
         React.createElement(
           "div",
           {
@@ -429,7 +406,6 @@ function RegistrationForm({
           }),
         ),
 
-        // Row 2: Phone + Gender
         React.createElement(
           "div",
           {
@@ -488,7 +464,6 @@ function RegistrationForm({
           ),
         ),
 
-        // Occupation
         React.createElement(FormField, {
           label: "Occupation (Optional)",
           value: form.occupation,
@@ -498,7 +473,6 @@ function RegistrationForm({
           style: { marginBottom: 20 },
         }),
 
-        // Special requests
         React.createElement(
           "div",
           null,
@@ -533,8 +507,8 @@ function RegistrationForm({
         {
           style: {
             background:
-              "linear-gradient(135deg, rgba(102,103,171,0.1) 0%, rgba(33,6,53,0.9) 100%)",
-            border: "1px solid rgba(123,51,126,0.2)",
+              "linear-gradient(135deg, rgba(194,24,91,0.1) 0%, rgba(106,5,114,0.9) 100%)",
+            border: "1px solid rgba(194,24,91,0.2)",
             borderRadius: 20,
             padding: "32px 28px",
             marginBottom: 24,
@@ -576,9 +550,9 @@ function RegistrationForm({
                   borderRadius: 14,
                   cursor: "pointer",
                   background: isSelected
-                    ? "rgba(102,103,171,0.2)"
+                    ? "rgba(194,24,91,0.2)"
                     : "rgba(255,255,255,0.03)",
-                  border: `2px solid ${isSelected ? "#F39F5A" : "rgba(255,255,255,0.08)"}`,
+                  border: `2px solid ${isSelected ? "#e040fb" : "rgba(255,255,255,0.08)"}`,
                   transition: "all 0.2s ease",
                 },
               },
@@ -589,7 +563,7 @@ function RegistrationForm({
                 checked: isSelected,
                 onChange: () => update("ticket_category", ticket.id),
                 style: {
-                  accentColor: "#F39F5A",
+                  accentColor: "#e040fb",
                   width: 18,
                   height: 18,
                   flexShrink: 0,
@@ -630,14 +604,8 @@ function RegistrationForm({
                         "span",
                         {
                           style: {
-                            background:
-                              ticket.badge === "Most Popular"
-                                ? "rgba(102,103,171,0.3)"
-                                : "rgba(245,213,224,0.3)",
-                            color:
-                              ticket.badge === "Most Popular"
-                                ? "#E8BCB9"
-                                : "#E8BCB9",
+                            background: "rgba(194,24,91,0.3)",
+                            color: "#f3e5f5",
                             borderRadius: 999,
                             padding: "2px 10px",
                             fontSize: 11,
@@ -651,7 +619,7 @@ function RegistrationForm({
                     "span",
                     {
                       style: {
-                        color: "#E8BCB9",
+                        color: "#f3e5f5",
                         fontWeight: 800,
                         fontSize: 18,
                         fontFamily: "Space Grotesk, sans-serif",
@@ -677,14 +645,14 @@ function RegistrationForm({
         ),
       ),
 
-      // Summary & Submit
+      // Summary
       React.createElement(
         "div",
         {
           style: {
             background:
-              "linear-gradient(135deg, rgba(102,103,171,0.2) 0%, rgba(245,213,224,0.1) 100%)",
-            border: "1px solid rgba(123,51,126,0.3)",
+              "linear-gradient(135deg, rgba(194,24,91,0.2) 0%, rgba(243,229,245,0.1) 100%)",
+            border: "1px solid rgba(194,24,91,0.3)",
             borderRadius: 20,
             padding: "24px 28px",
             marginBottom: 24,
@@ -749,8 +717,8 @@ function RegistrationForm({
             padding: "16px 0",
             borderRadius: 14,
             background: loading
-              ? "rgba(102,103,171,0.5)"
-              : "linear-gradient(135deg, #F39F5A, #AE445A)",
+              ? "rgba(194,24,91,0.5)"
+              : "linear-gradient(135deg, #e040fb, #c2185b)",
             color: "white",
             fontSize: 17,
             fontWeight: 700,
@@ -832,7 +800,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
             width: 72,
             height: 72,
             margin: "0 auto 20px",
-            background: "linear-gradient(135deg, #F39F5A, #AE445A)",
+            background: "linear-gradient(135deg, #e040fb, #c2185b)",
             borderRadius: "50%",
             display: "flex",
             alignItems: "center",
@@ -858,18 +826,19 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
       React.createElement(
         "p",
         { style: { color: "rgba(255,255,255,0.5)", fontSize: 15 } },
-        "Secure payment powered by " + (isDemoMode ? "Demo Mode" : "Paystack"),
+        "Secure payment powered by " +
+          (isDemoMode ? "Demo Mode" : "Paystack × Zainpay"),
       ),
     ),
 
-    // Order summary card
+    // Order summary
     React.createElement(
       "div",
       {
         style: {
           background:
-            "linear-gradient(135deg, rgba(102,103,171,0.15) 0%, rgba(33,6,53,0.9) 100%)",
-          border: "1px solid rgba(123,51,126,0.2)",
+            "linear-gradient(135deg, rgba(194,24,91,0.15) 0%, rgba(106,5,114,0.9) 100%)",
+          border: "1px solid rgba(194,24,91,0.2)",
           borderRadius: 20,
           padding: "28px 24px",
           marginBottom: 24,
@@ -943,7 +912,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
             alignItems: "center",
             marginTop: 20,
             paddingTop: 20,
-            borderTop: "1px solid rgba(123,51,126,0.2)",
+            borderTop: "1px solid rgba(194,24,91,0.2)",
           },
         },
         React.createElement(
@@ -966,18 +935,77 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
       ),
     ),
 
+    // Payment methods info
+    !isDemoMode &&
+      React.createElement(
+        "div",
+        {
+          style: {
+            background: "rgba(224,64,251,0.08)",
+            border: "1px solid rgba(224,64,251,0.2)",
+            borderRadius: 12,
+            padding: "14px 18px",
+            marginBottom: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          },
+        },
+        React.createElement(
+          "p",
+          {
+            style: { color: "#f3e5f5", fontSize: 13, fontWeight: 600 },
+          },
+          "💳 Accepted Payment Methods",
+        ),
+        React.createElement(
+          "div",
+          {
+            style: {
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+            },
+          },
+          [
+            "💳 Card",
+            "🏦 Bank Transfer",
+            "📱 USSD",
+            "📲 Mobile Money",
+            "🏧 Bank (Zainpay)",
+          ].map((method) =>
+            React.createElement(
+              "span",
+              {
+                key: method,
+                style: {
+                  background: "rgba(194,24,91,0.15)",
+                  border: "1px solid rgba(194,24,91,0.3)",
+                  borderRadius: 999,
+                  padding: "4px 12px",
+                  color: "#f3e5f5",
+                  fontSize: 12,
+                  fontWeight: 500,
+                },
+              },
+              method,
+            ),
+          ),
+        ),
+      ),
+
     // Demo mode notice
     isDemoMode &&
       React.createElement(
         "div",
         {
           style: {
-            background: "rgba(245,213,224,0.1)",
-            border: "1px solid rgba(245,213,224,0.3)",
+            background: "rgba(243,229,245,0.1)",
+            border: "1px solid rgba(243,229,245,0.3)",
             borderRadius: 12,
             padding: "14px 18px",
             marginBottom: 20,
-            color: "#E8BCB9",
+            color: "#f3e5f5",
             fontSize: 13,
             display: "flex",
             gap: 10,
@@ -993,7 +1021,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
         ),
       ),
 
-    // Payment button
+    // Pay button
     React.createElement(
       "button",
       {
@@ -1004,8 +1032,8 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
           padding: "18px 0",
           borderRadius: 14,
           background: loading
-            ? "rgba(102,103,171,0.5)"
-            : "linear-gradient(135deg, #F39F5A, #AE445A)",
+            ? "rgba(194,24,91,0.5)"
+            : "linear-gradient(135deg, #e040fb, #c2185b)",
           color: "white",
           fontSize: 18,
           fontWeight: 700,
@@ -1017,7 +1045,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
           alignItems: "center",
           justifyContent: "center",
           gap: 12,
-          boxShadow: "0 8px 32px rgba(102,103,171,0.4)",
+          boxShadow: "0 8px 32px rgba(194,24,91,0.4)",
         },
       },
       loading ? React.createElement(LoadingSpinner) : null,
@@ -1039,7 +1067,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
           flexWrap: "wrap",
         },
       },
-      ["🔒 SSL Secured", "✅ Payment Verified", "🏦 Bank-Grade Security"].map(
+      ["🔒 SSL Secured", "✅ Paystack Verified", "🏦 Zainpay Enabled"].map(
         (b) =>
           React.createElement(
             "span",
@@ -1095,13 +1123,13 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
             width: 96,
             height: 96,
             margin: "0 auto 24px",
-            background: "linear-gradient(135deg, #F39F5A, #059669)",
+            background: "linear-gradient(135deg, #e040fb, #059669)",
             borderRadius: "50%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 48,
-            boxShadow: "0 0 40px rgba(102,103,171,0.4)",
+            boxShadow: "0 0 40px rgba(194,24,91,0.4)",
             animation: "float 3s ease-in-out infinite",
           },
         },
@@ -1133,7 +1161,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
         "A confirmation email has been sent to: ",
         React.createElement(
           "strong",
-          { style: { color: "#AE445A" } },
+          { style: { color: "#c2185b" } },
           attendee.email,
         ),
       ),
@@ -1145,21 +1173,20 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
       {
         id: "ticket-print",
         style: {
-          background:
-            "linear-gradient(135deg, #1D1A39 0%, #1D1A39 50%, #1D1A39 100%)",
-          border: "1px solid rgba(123,51,126,0.4)",
+          background: "linear-gradient(135deg, #1a0a2e 0%, #1a0a2e 100%)",
+          border: "1px solid rgba(194,24,91,0.4)",
           borderRadius: 24,
           overflow: "hidden",
           marginBottom: 24,
           position: "relative",
         },
       },
-      // Top section with gradient
+      // Top section
       React.createElement(
         "div",
         {
           style: {
-            background: "linear-gradient(135deg, #F39F5A 0%, #AE445A 100%)",
+            background: "linear-gradient(135deg, #e040fb 0%, #c2185b 100%)",
             padding: "28px 32px",
             position: "relative",
             overflow: "hidden",
@@ -1204,7 +1231,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
                     marginBottom: 4,
                   },
                 },
-                "MC FABS MASTERCLASS",
+                "MC FABS EXCLUSIVE MASTERCLASS",
               ),
               React.createElement(
                 "h3",
@@ -1290,7 +1317,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
                   "p",
                   {
                     style: {
-                      color: "rgba(123,51,126,0.8)",
+                      color: "rgba(194,24,91,0.8)",
                       fontSize: 10,
                       fontWeight: 600,
                       letterSpacing: "0.15em",
@@ -1303,7 +1330,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
                   "p",
                   {
                     style: {
-                      color: item.highlight ? "#E8BCB9" : "white",
+                      color: item.highlight ? "#f3e5f5" : "white",
                       fontSize: item.large ? 20 : item.mono ? 15 : 14,
                       fontWeight: item.large || item.highlight ? 700 : 500,
                       fontFamily: item.mono ? "monospace" : "inherit",
@@ -1350,7 +1377,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
                     width: 160,
                     height: 160,
                     borderRadius: 12,
-                    border: "3px solid rgba(123,51,126,0.3)",
+                    border: "3px solid rgba(194,24,91,0.3)",
                   },
                   alt: "Ticket QR Code",
                 })
@@ -1358,29 +1385,29 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
                   ref: qrCanvasRef,
                   style: {
                     borderRadius: 12,
-                    border: "3px solid rgba(123,51,126,0.3)",
+                    border: "3px solid rgba(194,24,91,0.3)",
                   },
                 }),
             React.createElement(
               "div",
               {
                 style: {
-                  background: "rgba(102,103,171,0.15)",
-                  border: "1px solid rgba(102,103,171,0.3)",
+                  background: "rgba(194,24,91,0.15)",
+                  border: "1px solid rgba(194,24,91,0.3)",
                   borderRadius: 999,
                   padding: "4px 12px",
                 },
               },
               React.createElement(
                 "span",
-                { style: { color: "#F39F5A", fontSize: 12, fontWeight: 600 } },
+                { style: { color: "#e040fb", fontSize: 12, fontWeight: 600 } },
                 "✓ PAYMENT CONFIRMED",
               ),
             ),
           ),
         ),
 
-        // Ticket perforated bottom
+        // Bottom strip
         React.createElement(
           "div",
           {
@@ -1461,7 +1488,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
               cursor: "pointer",
               border: btn.primary ? "none" : "1px solid rgba(255,255,255,0.12)",
               background: btn.primary
-                ? "linear-gradient(135deg, #F39F5A, #AE445A)"
+                ? "linear-gradient(135deg, #e040fb, #c2185b)"
                 : "rgba(255,255,255,0.05)",
               color: "white",
               fontFamily: "Inter, sans-serif",
@@ -1484,8 +1511,8 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
       "div",
       {
         style: {
-          background: "rgba(102,103,171,0.08)",
-          border: "1px solid rgba(102,103,171,0.2)",
+          background: "rgba(194,24,91,0.08)",
+          border: "1px solid rgba(194,24,91,0.2)",
           borderRadius: 16,
           padding: "20px 24px",
         },
@@ -1494,7 +1521,7 @@ function TicketSuccess({ attendee, qrDataUrl, pdfDataUri, setPage }) {
         "h4",
         {
           style: {
-            color: "#F39F5A",
+            color: "#e040fb",
             fontWeight: 700,
             marginBottom: 12,
             fontSize: 15,

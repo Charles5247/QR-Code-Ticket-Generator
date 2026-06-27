@@ -233,7 +233,7 @@ function ScannerPage({ setPage }) {
       color: "#F39F5A",
       bg: "rgba(102,103,171,0.12)",
       border: "rgba(102,103,171,0.35)",
-      message: "Welcome to MC FABS Masterclass! Enjoy the event.",
+      message: "Welcome to MC FABS Exclusive Masterclass! Enjoy the event.",
     },
     duplicate: {
       icon: "⚠️",

@@ -1,5 +1,5 @@
 // ============================================================
-// MC FABS MASTERCLASS — Ticket View Page
+// MC FABS EXCLUSIVE MASTERCLASS — Ticket View Page
 // ============================================================
 
 function TicketPage({ setPage }) {
@@ -242,7 +242,7 @@ function TicketPage({ setPage }) {
                         letterSpacing: "0.2em",
                       },
                     },
-                    "MC FABS MASTERCLASS 2026",
+                    "MC FABS EXCLUSIVE MASTERCLASS 2026",
                   ),
                   React.createElement(
                     "h3",

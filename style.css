@@ -71,8 +71,8 @@ body {
   background: linear-gradient(
     135deg,
     var(--moon-blue) 0%,
-    var(--moon-purple) 60%,
-    var(--moon-rose) 100%
+    var(--moon-purple) 70%,
+    var(--moon-bg-deep) 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -237,14 +237,14 @@ body {
 }
 
 /* Particle dots background */
-.dots-bg {
+/*.dots-bg {
   background-image: radial-gradient(
     circle,
     rgba(243, 159, 90, 0.18) 1px,
     transparent 1px
   );
   background-size: 32px 32px;
-}
+}*/
 
 /* Badge */
 .badge-gold {

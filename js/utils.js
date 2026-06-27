@@ -1,5 +1,5 @@
 // ============================================================
-// MC FABS MASTERCLASS — Utilities
+// MC FABS EXCLUSIVE MASTERCLASS — Utilities
 // ============================================================
 
 // ─── QR Code Generator ────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ const PDFTicket = {
     doc.text("MC FABS", 25, 35, { align: "center" });
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text("MASTERCLASS", 25, 42, { align: "center" });
+    doc.text("EXCLUSIVE MASTERCLASS", 25, 42, { align: "center" });
 
     // Ticket category badge
     const ticket = CONFIG.TICKETS.find(
@@ -426,7 +426,7 @@ function shareOnWhatsApp(attendee) {
       `💺 Seat: ${attendee.seat_number}\n` +
       `📅 Date: ${formatDate(CONFIG.EVENT.date)}\n` +
       `📍 Venue: ${CONFIG.EVENT.venue}\n\n` +
-      `Register now at mcfabs.ng`,
+      `Register now at https://fabs-masterclass.onrender.com`,
   );
   window.open(`https://wa.me/?text=${text}`, "_blank");
 }

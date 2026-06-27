@@ -1,5 +1,5 @@
 // ============================================================
-// MC FABS MASTERCLASS — Toast Notification System
+// MC FABS EXCLUSIVE MASTERCLASS — Toast Notification System
 // ============================================================
 
 const { useState, useEffect, useCallback, useRef, createContext, useContext } =

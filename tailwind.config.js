@@ -35,8 +35,8 @@ export default {
         },
       },
       backgroundImage: {
-        "hero-gradient":
-          "radial-gradient(ellipse at 15% 35%, rgba(224, 64, 251, 0.27) 0%, transparent 45%), radial-gradient(ellipse at 80% 18%, rgba(243, 229, 245, 0.18) 0%, transparent 45%), radial-gradient(ellipse at 50% 100%, rgba(194, 24, 91, 0.22) 0%, transparent 50%), linear-gradient(180deg, #1a0a2e 0%, #6a0572 100%)",
+        /*"hero-gradient":
+          "radial-gradient(ellipse at 15% 35%, rgba(224, 64, 251, 0.27) 0%, transparent 45%), radial-gradient(ellipse at 80% 18%, rgba(243, 229, 245, 0.18) 0%, transparent 45%), radial-gradient(ellipse at 50% 100%, rgba(194, 24, 91, 0.22) 0%, transparent 50%), linear-gradient(180deg, #1a0a2e 0%, #6a0572 100%)",*/
         "section-gradient":
           "linear-gradient(180deg, rgba(26, 10, 46, 0.95) 0%, #6a0572 100%)",
         "gradient-text":
@@ -52,8 +52,8 @@ export default {
           "linear-gradient(90deg, transparent, rgba(224, 64, 251, 0.45), rgba(243, 229, 245, 0.35), transparent)",
         "admin-sidebar":
           "linear-gradient(180deg, #6a0572 0%, rgba(26, 10, 46, 0.88) 100%)",
-        "dots-bg":
-          "radial-gradient(circle, rgba(224, 64, 251, 0.18) 1px, transparent 1px)",
+        /*"dots-bg":
+          "radial-gradient(circle, rgba(224, 64, 251, 0.18) 1px, transparent 1px)",*/
       },
     },
   },

@@ -2,10 +2,16 @@
 // MC FABS MASTERCLASS — Landing Page
 // ============================================================
 
+// ─── Media URLs — update these when ready ────────────────────────────────────
+const HERO_VIDEO_URL = ""; // paste your .mp4 or hosted video URL here
+const HERO_VIDEO_POSTER = ""; // optional: thumbnail shown before video plays
+// ─────────────────────────────────────────────────────────────────────────────
+
 function LandingPage({ setPage }) {
   return React.createElement(
     "div",
     { className: "page-enter" },
+    React.createElement(FlierPopup),
     React.createElement(HeroSection, { setPage }),
     React.createElement(StatsBar),
     React.createElement(AboutSection),
@@ -20,11 +26,164 @@ function LandingPage({ setPage }) {
   );
 }
 
+// ─── Flier Popup (ad-poster.jpg, auto-shows after 5s then auto-closes) ───────
+function FlierPopup() {
+  const [visible, setVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    // Show after 1s delay, auto-close after 5s
+    const showTimer = setTimeout(() => setVisible(true), 1000);
+    const hideTimer = setTimeout(() => setVisible(false), 6000);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
+  if (!visible) return null;
+
+  return React.createElement(
+    "div",
+    {
+      onClick: () => setVisible(false),
+      style: {
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.75)",
+        zIndex: 99999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        animation: "fadeIn 0.4s ease",
+      },
+    },
+    React.createElement(
+      "div",
+      {
+        onClick: (e) => e.stopPropagation(),
+        style: {
+          position: "relative",
+          maxWidth: 480,
+          width: "100%",
+          borderRadius: 20,
+          overflow: "hidden",
+          boxShadow: "0 32px 80px rgba(194,24,91,0.5)",
+          border: "2px solid rgba(194,24,91,0.4)",
+        },
+      },
+      // Close button
+      React.createElement(
+        "button",
+        {
+          onClick: () => setVisible(false),
+          style: {
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            background: "rgba(0,0,0,0.7)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            color: "white",
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            fontSize: 16,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: "Inter, sans-serif",
+          },
+        },
+        "✕",
+      ),
+      // Flier image
+      React.createElement("img", {
+        src: "ad-poster.jpg",
+        alt: "MC FABS Masterclass Event Flier",
+        style: { width: "100%", display: "block" },
+      }),
+      // Register CTA bar at bottom
+      React.createElement(
+        "div",
+        {
+          style: {
+            background: "linear-gradient(135deg, #c2185b, #e040fb)",
+            padding: "14px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          },
+        },
+        React.createElement(
+          "span",
+          {
+            style: {
+              color: "white",
+              fontSize: 14,
+              fontWeight: 600,
+              fontFamily: "Inter, sans-serif",
+            },
+          },
+          "🔥 Limited seats — September 12th, 2026",
+        ),
+        React.createElement(
+          "button",
+          {
+            onClick: () => {
+              setVisible(false);
+              const el = document.getElementById("tickets");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            },
+            style: {
+              background: "white",
+              color: "#c2185b",
+              border: "none",
+              borderRadius: 8,
+              padding: "8px 18px",
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+              whiteSpace: "nowrap",
+            },
+          },
+          "Get Ticket →",
+        ),
+      ),
+    ),
+  );
+}
+
 // ─── Hero Section ──────────────────────────────────────────────────────────────
 function HeroSection({ setPage }) {
+  const [videoPlaying, setVideoPlaying] = React.useState(false);
+  const [videoMode, setVideoMode] = React.useState("inline"); // "inline" or "fullscreen"
+  const videoRef = React.useRef(null);
+
   const scrollToTickets = () => {
     const el = document.getElementById("tickets");
     if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const playVideo = (mode) => {
+    setVideoMode(mode);
+    setVideoPlaying(true);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play();
+        if (mode === "fullscreen" && videoRef.current.requestFullscreen) {
+          videoRef.current.requestFullscreen();
+        }
+      }
+    }, 100);
+  };
+
+  const stopVideo = () => {
+    if (videoRef.current) videoRef.current.pause();
+    setVideoPlaying(false);
   };
 
   return React.createElement(
@@ -41,6 +200,41 @@ function HeroSection({ setPage }) {
         paddingTop: 80,
       },
     },
+
+    // ── Background video (hidden behind gradient, paused until user plays) ──
+    HERO_VIDEO_URL &&
+      React.createElement("video", {
+        ref: videoRef,
+        src: HERO_VIDEO_URL,
+        poster: HERO_VIDEO_POSTER || undefined,
+        loop: true,
+        muted: videoMode === "inline",
+        playsInline: true,
+        style: {
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+          opacity: videoPlaying && videoMode === "inline" ? 0.35 : 0,
+          transition: "opacity 0.6s ease",
+          pointerEvents: "none",
+        },
+      }),
+
+    // Gradient overlay (always on top of video)
+    React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        background:
+          "linear-gradient(135deg, rgba(26,10,46,0.92) 0%, rgba(106,5,114,0.85) 100%)",
+        zIndex: 1,
+        pointerEvents: "none",
+      },
+    }),
+
     // Animated blobs
     React.createElement("div", {
       style: {
@@ -53,7 +247,7 @@ function HeroSection({ setPage }) {
           "radial-gradient(circle, rgba(194,24,91,0.25) 0%, transparent 70%)",
         borderRadius: "50%",
         animation: "float 6s ease-in-out infinite",
-        zIndex: 0,
+        zIndex: 1,
       },
     }),
     React.createElement("div", {
@@ -67,15 +261,69 @@ function HeroSection({ setPage }) {
           "radial-gradient(circle, rgba(243,229,245,0.15) 0%, transparent 70%)",
         borderRadius: "50%",
         animation: "float 8s ease-in-out infinite reverse",
-        zIndex: 0,
+        zIndex: 1,
       },
     }),
+
+    // Fullscreen video modal
+    videoPlaying &&
+      videoMode === "fullscreen" &&
+      React.createElement(
+        "div",
+        {
+          onClick: stopVideo,
+          style: {
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.95)",
+            zIndex: 99998,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        },
+        React.createElement(
+          "div",
+          {
+            onClick: (e) => e.stopPropagation(),
+            style: { position: "relative", width: "90vw", maxWidth: 960 },
+          },
+          React.createElement(
+            "button",
+            {
+              onClick: stopVideo,
+              style: {
+                position: "absolute",
+                top: -44,
+                right: 0,
+                background: "none",
+                border: "1px solid rgba(255,255,255,0.3)",
+                color: "white",
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                fontSize: 16,
+                cursor: "pointer",
+              },
+            },
+            "✕",
+          ),
+          React.createElement("video", {
+            ref: videoRef,
+            src: HERO_VIDEO_URL,
+            poster: HERO_VIDEO_POSTER || undefined,
+            controls: true,
+            autoPlay: true,
+            style: { width: "100%", borderRadius: 16 },
+          }),
+        ),
+      ),
 
     React.createElement(
       "div",
       {
         className: "max-w-7xl mx-auto px-4 sm:px-6 py-20",
-        style: { width: "100%", position: "relative", zIndex: 1 },
+        style: { width: "100%", position: "relative", zIndex: 2 },
       },
       React.createElement(
         "div",
@@ -114,7 +362,6 @@ function HeroSection({ setPage }) {
             "🔥 LIMITED SEATS — KANO, NIGERIA 2026",
           ),
 
-          // Main headline
           React.createElement(
             "h1",
             {
@@ -161,7 +408,7 @@ function HeroSection({ setPage }) {
             "p",
             {
               style: {
-                fontSize: "clamp(36px, 6vw, 70px)",
+                fontSize: "clamp(20px, 4vw, 36px)",
                 color: "rgba(255,255,255,0.7)",
                 marginBottom: 25,
                 lineHeight: 1.6,
@@ -184,7 +431,7 @@ function HeroSection({ setPage }) {
               },
             },
             [
-              { icon: "📅", text: `September 12th, 2026` },
+              { icon: "📅", text: "September 12th, 2026" },
               { icon: "⏰", text: "10:00 AM WAT" },
               { icon: "📍", text: "Kano, Nigeria" },
             ].map((item) =>
@@ -214,7 +461,7 @@ function HeroSection({ setPage }) {
           // CTAs
           React.createElement(
             "div",
-            { style: { display: "flex", gap: 16, flexWrap: "wrap" } },
+            { style: { display: "flex", gap: 12, flexWrap: "wrap" } },
             React.createElement(
               "button",
               {
@@ -272,6 +519,74 @@ function HeroSection({ setPage }) {
               },
               "Learn More ↓",
             ),
+
+            // Video play button — only shown when video URL is set
+            HERO_VIDEO_URL &&
+              React.createElement(
+                "div",
+                { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+                React.createElement(
+                  "button",
+                  {
+                    onClick: () => playVideo("inline"),
+                    style: {
+                      background: "rgba(224,64,251,0.15)",
+                      border: "1px solid rgba(224,64,251,0.4)",
+                      color: "#e040fb",
+                      padding: "16px 22px",
+                      borderRadius: 14,
+                      fontSize: 15,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: "Inter, sans-serif",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    },
+                  },
+                  "▶ Play Video",
+                ),
+                React.createElement(
+                  "button",
+                  {
+                    onClick: () => playVideo("fullscreen"),
+                    style: {
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      color: "rgba(255,255,255,0.6)",
+                      padding: "16px 18px",
+                      borderRadius: 14,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      fontFamily: "Inter, sans-serif",
+                    },
+                    title: "Watch fullscreen",
+                  },
+                  "⛶",
+                ),
+              ),
+
+            // Stop button when inline video is playing
+            videoPlaying &&
+              videoMode === "inline" &&
+              React.createElement(
+                "button",
+                {
+                  onClick: stopVideo,
+                  style: {
+                    background: "rgba(194,24,91,0.2)",
+                    border: "1px solid rgba(194,24,91,0.4)",
+                    color: "#f3e5f5",
+                    padding: "16px 22px",
+                    borderRadius: 14,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "Inter, sans-serif",
+                  },
+                },
+                "⏹ Stop",
+              ),
           ),
         ),
 
@@ -318,25 +633,17 @@ function HeroSection({ setPage }) {
                   marginBottom: 24,
                 },
               },
-              React.createElement(
-                "div",
-                {
-                  style: {
-                    width: 72,
-                    height: 72,
-                    borderRadius: "50%",
-                    background: "url('fabulous.jpg') center",
-                    backgroundSize: "cover",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 32,
-                    flexShrink: 0,
-                    boxShadow: "0 0 0 3px rgba(194,24,91,0.3)",
-                  },
+              React.createElement("div", {
+                style: {
+                  width: 72,
+                  height: 72,
+                  borderRadius: "50%",
+                  background: "url('fabulous.jpg') center",
+                  backgroundSize: "cover",
+                  flexShrink: 0,
+                  boxShadow: "0 0 0 3px rgba(194,24,91,0.3)",
                 },
-                "",
-              ),
+              }),
               React.createElement(
                 "div",
                 null,
@@ -362,7 +669,7 @@ function HeroSection({ setPage }) {
                       fontStyle: "italic",
                     },
                   },
-                  "mc fabs.ng",
+                  "MC FABS.ng",
                 ),
                 React.createElement(
                   "p",
@@ -392,7 +699,7 @@ function HeroSection({ setPage }) {
               [
                 { num: "5+", label: "Years Experience" },
                 { num: "100+", label: "Events Hosted" },
-                { num: "25K+", label: "Followers" },
+                { num: "50K+", label: "Followers" },
                 { num: "100%", label: "Satisfaction" },
               ].map((s) =>
                 React.createElement(
@@ -433,7 +740,7 @@ function HeroSection({ setPage }) {
               ),
             ),
 
-            // Event countdown
+            // Countdown
             React.createElement(
               "div",
               {
@@ -636,11 +943,6 @@ function AboutSection() {
             desc: "Discover the body language secrets and confidence-building strategies used by top-tier event hosts worldwide.",
           },
           {
-            icon: "💡",
-            title: "Business of Event Hosting",
-            desc: "Turn your passion into profit — learn how to price your services, secure clients, and scale your MC career.",
-          },
-          {
             icon: "📱",
             title: "Branding and Positioning yourself in the Industry",
             desc: "Build your personal brand as a host, speaker, or MC across traditional and digital media platforms.",
@@ -648,9 +950,13 @@ function AboutSection() {
           {
             icon: "🤝",
             title: "How to attract Opportunities as you grow your brand",
-            desc: "Connect with fellow professionals, entrepreneurs, and creatives from across Northern Nigeria and beyond to know the secrets.",
+            desc: "Connect with fellow professionals, entrepreneurs, and creatives from across Northern Nigeria and beyond.",
           },
-
+          {
+            icon: "💡",
+            title: "Business of Event Hosting",
+            desc: "Turn your passion into profit — learn how to price your services, secure clients, and scale your MC career.",
+          },
           {
             icon: "🏆",
             title: "Certification & Recognition",
@@ -739,51 +1045,22 @@ function SpeakerSection() {
             alignItems: "center",
           },
         },
-        // Speaker avatar & info
         React.createElement(
           "div",
           { style: { textAlign: "center" } },
-          React.createElement(
-            "div",
-            {
-              style: {
-                width: 350,
-                height: 350,
-                margin: "0 auto 24px",
-                background: "url('fabs.jpg') center",
-                backgroundSize: "cover",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 80,
-                boxShadow:
-                  "0 0 60px rgba(194,24,91,0.4), 0 0 0 4px rgba(194,24,91,0.2)",
-                position: "relative",
-              },
+          React.createElement("div", {
+            style: {
+              width: 350,
+              height: 350,
+              margin: "0 auto 24px",
+              background: "url('fabs.jpg') center",
+              backgroundSize: "cover",
+              borderRadius: "50%",
+              boxShadow:
+                "0 0 60px rgba(194,24,91,0.4), 0 0 0 4px rgba(194,24,91,0.2)",
+              position: "relative",
             },
-            "",
-            React.createElement(
-              "div",
-              {
-                style: {
-                  position: "absolute",
-                  bottom: 8,
-                  right: 8,
-                  width: 40,
-                  height: 40,
-                  background: "#e040fb",
-                  borderRadius: "50%",
-                  border: "3px solid #1a0a2e",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 18,
-                },
-              },
-              "✓",
-            ),
-          ),
+          }),
           React.createElement(
             "h3",
             {
@@ -840,7 +1117,6 @@ function SpeakerSection() {
           ),
         ),
 
-        // Bio
         React.createElement(
           "div",
           null,
@@ -864,7 +1140,7 @@ function SpeakerSection() {
                   marginBottom: 20,
                 },
               },
-              "Faith Abah, popularly known as MC FABS, is Kano's premier event host and media personality with over a decade of experience commanding stages across Northern Nigeria. From state ceremonies to corporate galas, from Red Carpet Host to Event Compere — her electrifying presence and unmatched professionalism have made her the most sought-after MC in the region.",
+              "Faith Abah, popularly known as MC FABS, is Kano's premier event host and media personality with over a decade of experience commanding stages across Northern Nigeria. From state ceremonies to corporate galas, from weddings to media broadcasts — her electrifying presence and unmatched professionalism have made her the most sought-after MC in the region.",
             ),
             React.createElement(
               "p",
@@ -941,7 +1217,7 @@ function ScheduleSection() {
     },
     {
       time: "12:00 PM",
-      title: "Session 2: Stage Presence & Body Language",
+      title: "Session 2: Stage Presence",
       desc: "Command attention, read your audience, and own the stage",
       type: "main",
     },
@@ -971,7 +1247,7 @@ function ScheduleSection() {
     },
     {
       time: "5:30 PM",
-      title: "Certificate Presentation & Group Photo",
+      title: "Certificate Presentation",
       desc: "Official certificates, group photographs, and closing remarks",
       type: "special",
     },
@@ -999,19 +1275,11 @@ function ScheduleSection() {
       border: "rgba(243,229,245,0.25)",
       dot: "#f3e5f5",
     },
-    vip: {
-      bg: "rgba(106,5,114,0.00)",
-      border: "rgba(106,5,114,0.00)",
-      dot: "#c2185b",
-    },
   };
 
   return React.createElement(
     "section",
-    {
-      id: "schedule",
-      style: { padding: "100px 24px", background: "#1a0a2e" },
-    },
+    { id: "schedule", style: { padding: "100px 24px", background: "#1a0a2e" } },
     React.createElement(
       "div",
       { className: "max-w-4xl mx-auto" },
@@ -1019,113 +1287,90 @@ function ScheduleSection() {
         tag: "Event Schedule",
         title: "A Full Day of Transformation",
       }),
-
       React.createElement(
         "div",
-        { style: { position: "relative", marginTop: 48 } },
-        // Timeline line
-        React.createElement("div", {
+        {
           style: {
-            position: "absolute",
-            left: "50%",
-            top: 0,
-            bottom: 0,
-            width: 2,
-            background: "linear-gradient(180deg, #e040fb, #c2185b, #f3e5f5)",
-            transform: "translateX(-50%)",
-            display: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+            marginTop: 48,
           },
-        }),
-
-        React.createElement(
-          "div",
-          { style: { display: "flex", flexDirection: "column", gap: 16 } },
-          schedule.map((item, i) => {
-            const colors = typeColors[item.type];
-            return React.createElement(
-              "div",
-              {
-                key: i,
-                className: "card-hover",
-                style: {
-                  display: "flex",
-                  gap: 16,
-                  alignItems: "flex-start",
-                  background: colors.bg,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: 14,
-                  padding: "18px 22px",
-                },
+        },
+        schedule.map((item, i) => {
+          const colors = typeColors[item.type];
+          return React.createElement(
+            "div",
+            {
+              key: i,
+              className: "card-hover",
+              style: {
+                display: "flex",
+                gap: 16,
+                alignItems: "flex-start",
+                background: colors.bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 14,
+                padding: "18px 22px",
               },
-              React.createElement("div", {
-                style: {
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  background: colors.dot,
-                  flexShrink: 0,
-                  marginTop: 5,
-                  boxShadow: `0 0 8px ${colors.dot}`,
-                },
-              }),
+            },
+            React.createElement("div", {
+              style: {
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                background: colors.dot,
+                flexShrink: 0,
+                marginTop: 5,
+                boxShadow: `0 0 8px ${colors.dot}`,
+              },
+            }),
+            React.createElement(
+              "div",
+              { style: { flex: 1 } },
               React.createElement(
-                "div",
-                { style: { flex: 1 } },
-                React.createElement(
-                  "div",
-                  {
-                    style: {
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 12,
-                      alignItems: "center",
-                      marginBottom: 6,
-                    },
+                "span",
+                {
+                  style: {
+                    background: "rgba(255,255,255,0.08)",
+                    borderRadius: 999,
+                    padding: "2px 10px",
+                    color: "#c2185b",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    display: "inline-block",
+                    marginBottom: 6,
                   },
-                  React.createElement(
-                    "span",
-                    {
-                      style: {
-                        background: "rgba(255,255,255,0.08)",
-                        borderRadius: 999,
-                        padding: "2px 10px",
-                        color: "#c2185b",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      },
-                    },
-                    item.time,
-                  ),
-                  null,
-                ),
-                React.createElement(
-                  "h4",
-                  {
-                    style: {
-                      color: "white",
-                      fontWeight: 700,
-                      fontSize: 16,
-                      margin: "0 0 6px",
-                    },
-                  },
-                  item.title,
-                ),
-                React.createElement(
-                  "p",
-                  {
-                    style: {
-                      color: "rgba(255,255,255,0.5)",
-                      fontSize: 13,
-                      margin: 0,
-                      lineHeight: 1.5,
-                    },
-                  },
-                  item.desc,
-                ),
+                },
+                item.time,
               ),
-            );
-          }),
-        ),
+              React.createElement(
+                "h4",
+                {
+                  style: {
+                    color: "white",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    margin: "0 0 6px",
+                  },
+                },
+                item.title,
+              ),
+              React.createElement(
+                "p",
+                {
+                  style: {
+                    color: "rgba(255,255,255,0.5)",
+                    fontSize: 13,
+                    margin: 0,
+                    lineHeight: 1.5,
+                  },
+                },
+                item.desc,
+              ),
+            ),
+          );
+        }),
       ),
     ),
   );
@@ -1164,7 +1409,6 @@ function BenefitsSection() {
         subtitle:
           "This is not just an event. It's a career-changing investment.",
       }),
-
       React.createElement(
         "div",
         {
@@ -1250,9 +1494,7 @@ function TestimonialsSection() {
 
   return React.createElement(
     "section",
-    {
-      style: { padding: "100px 24px", background: "#1a0a2e" },
-    },
+    { style: { padding: "100px 24px", background: "#1a0a2e" } },
     React.createElement(
       "div",
       { className: "max-w-6xl mx-auto" },
@@ -1262,7 +1504,6 @@ function TestimonialsSection() {
         subtitle:
           "Real words from real people whose lives and careers were transformed.",
       }),
-
       React.createElement(
         "div",
         {
@@ -1281,7 +1522,6 @@ function TestimonialsSection() {
               className: "card-hover glass",
               style: { borderRadius: 16, padding: "24px 22px" },
             },
-            // Stars
             React.createElement(
               "div",
               { style: { marginBottom: 16 } },
@@ -1351,7 +1591,7 @@ function TestimonialsSection() {
   );
 }
 
-// ─── Pricing Section ──────────────────────────────────────────────────────────
+// ─── Pricing Section (split layout: left = ticket info, right = theme-poster) ─
 function PricingSection({ setPage }) {
   return React.createElement(
     "section",
@@ -1370,265 +1610,319 @@ function PricingSection({ setPage }) {
         tag: "Tickets & Pricing",
         title: "Early Bird",
         subtitle:
-          "Note: the Price would change for late registration ... secure your seat now and on time.",
+          "Note: the price will change for late registration — secure your seat now.",
       }),
 
+      // Split layout wrapper
       React.createElement(
         "div",
         {
           style: {
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: 24,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: 40,
             marginTop: 48,
+            alignItems: "start",
           },
         },
-        CONFIG.TICKETS.map((ticket, i) => {
-          const isPopular = ticket.badge === "Most Popular";
-          const isExclusive = ticket.badge === "Exclusive";
 
-          return React.createElement(
-            "div",
-            {
-              key: ticket.id,
-              className: "card-hover",
-              style: {
-                borderRadius: 20,
-                border: isPopular
-                  ? "2px solid #c2185b"
-                  : isExclusive
-                    ? "2px solid #f3e5f5"
-                    : "1px solid rgba(255,255,255,0.08)",
-                background: isPopular
-                  ? "linear-gradient(135deg, rgba(194,24,91,0.25) 0%, rgba(106,5,114,0.9) 100%)"
-                  : isExclusive
-                    ? "linear-gradient(135deg, rgba(243,229,245,0.15) 0%, rgba(106,5,114,0.9) 100%)"
-                    : "rgba(255,255,255,0.03)",
-                padding: 28,
-                position: "relative",
-                overflow: "hidden",
-                width: "50%",
-                maxWidth: 400,
-                minWidth: 320,
-                textAlign: "center",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              },
+        // LEFT — Ticket cards
+        React.createElement(
+          "div",
+          {
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 24,
             },
-            // Glow
-            isPopular &&
-              React.createElement("div", {
-                style: {
-                  position: "absolute",
-                  top: -60,
-                  right: -60,
-                  width: 200,
-                  height: 200,
-                  background:
-                    "radial-gradient(circle, rgba(194,24,91,0.2) 0%, transparent 70%)",
-                  borderRadius: "50%",
-                },
-              }),
+          },
+          CONFIG.TICKETS.map((ticket, i) => {
+            const isPopular = ticket.badge === "Most Popular";
+            const isExclusive = ticket.badge === "Exclusive";
 
-            // Badge
-            ticket.badge &&
-              React.createElement(
-                "div",
-                {
-                  style: {
-                    justifyContent: "center",
-                    position: "absolute",
-                    top: 16,
-                    right: 16,
-                    background: isPopular
-                      ? "linear-gradient(135deg, #e040fb, #c2185b)"
-                      : "linear-gradient(135deg, #e040fb, #f3e5f5)",
-                    color: "white",
-                    borderRadius: 999,
-                    padding: "4px 12px",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  },
-                },
-                ticket.badge,
-              ),
-
-            // Ticket name
-            React.createElement(
-              "h3",
-              {
-                style: {
-                  color: "white",
-                  fontWeight: 800,
-                  fontSize: 22,
-                  margin: "0 0 8px",
-                  fontFamily: "Space Grotesk, sans-serif",
-                },
-              },
-              ticket.name,
-            ),
-
-            // Price
-            React.createElement(
+            return React.createElement(
               "div",
               {
+                key: ticket.id,
+                className: "card-hover",
                 style: {
-                  marginBottom: 24,
+                  borderRadius: 20,
+                  border: isPopular
+                    ? "2px solid #c2185b"
+                    : isExclusive
+                      ? "2px solid #f3e5f5"
+                      : "1px solid rgba(255,255,255,0.08)",
+                  background: isPopular
+                    ? "linear-gradient(135deg, rgba(194,24,91,0.25) 0%, rgba(106,5,114,0.9) 100%)"
+                    : isExclusive
+                      ? "linear-gradient(135deg, rgba(243,229,245,0.15) 0%, rgba(106,5,114,0.9) 100%)"
+                      : "rgba(255,255,255,0.03)",
+                  padding: 28,
+                  position: "relative",
+                  overflow: "hidden",
                 },
               },
+
+              // Glow
+              isPopular &&
+                React.createElement("div", {
+                  style: {
+                    position: "absolute",
+                    top: -60,
+                    right: -60,
+                    width: 200,
+                    height: 200,
+                    background:
+                      "radial-gradient(circle, rgba(194,24,91,0.2) 0%, transparent 70%)",
+                    borderRadius: "50%",
+                  },
+                }),
+
+              // Badge
+              ticket.badge &&
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      position: "absolute",
+                      top: 16,
+                      right: 16,
+                      background: isPopular
+                        ? "linear-gradient(135deg, #e040fb, #c2185b)"
+                        : "linear-gradient(135deg, #e040fb, #f3e5f5)",
+                      color: "white",
+                      borderRadius: 999,
+                      padding: "4px 12px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    },
+                  },
+                  ticket.badge,
+                ),
+
+              // Ticket name
+              React.createElement(
+                "h3",
+                {
+                  style: {
+                    color: "white",
+                    fontWeight: 800,
+                    fontSize: 22,
+                    margin: "0 0 8px",
+                    fontFamily: "Space Grotesk, sans-serif",
+                  },
+                },
+                ticket.name,
+              ),
+
+              // Price
               React.createElement(
                 "div",
-                {
-                  style: {
-                    alignItems: "center",
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: 4,
-                    justifyContent: "center",
-                  },
-                },
+                { style: { marginBottom: 20 } },
                 React.createElement(
-                  "span",
+                  "div",
                   {
-                    style: {
-                      color: isPopular
-                        ? "#f3e5f5"
-                        : isExclusive
-                          ? "#f3e5f5"
-                          : "rgba(255,255,255,0.5)",
-                      fontSize: 20,
-                      fontWeight: 600,
-                    },
-                  },
-                  "₦",
-                ),
-                React.createElement(
-                  "span",
-                  {
-                    style: {
-                      color: "white",
-                      fontSize: 42,
-                      fontWeight: 900,
-                      fontFamily: "Space Grotesk, sans-serif",
-                    },
-                  },
-                  Number(ticket.price).toLocaleString(),
-                ),
-              ),
-              React.createElement(
-                "p",
-                {
-                  style: {
-                    color: "rgba(255,255,255,0.4)",
-                    fontSize: 12,
-                    marginTop: 4,
-                  },
-                },
-                "One-time payment • No hidden fees",
-              ),
-            ),
-
-            // Features
-            React.createElement(
-              "ul",
-              {
-                style: {
-                  listStyle: "none",
-                  padding: 0,
-                  margin: "0 0 28px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                  alignItems: "center",
-                },
-              },
-              ticket.features.map((f, j) =>
-                React.createElement(
-                  "li",
-                  {
-                    key: j,
-                    style: {
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                      color: "rgba(255,255,255,0.75)",
-                      fontSize: 14,
-                      lineHeight: 1.5,
-                    },
+                    style: { display: "flex", alignItems: "baseline", gap: 4 },
                   },
                   React.createElement(
                     "span",
                     {
                       style: {
-                        color: isExclusive ? "#f3e5f5" : "#e040fb",
-                        fontWeight: 700,
+                        color:
+                          isPopular || isExclusive
+                            ? "#f3e5f5"
+                            : "rgba(255,255,255,0.5)",
+                        fontSize: 20,
+                        fontWeight: 600,
                       },
                     },
-                    "✓",
+                    "₦",
                   ),
-                  f,
+                  React.createElement(
+                    "span",
+                    {
+                      style: {
+                        color: "white",
+                        fontSize: 42,
+                        fontWeight: 900,
+                        fontFamily: "Space Grotesk, sans-serif",
+                      },
+                    },
+                    Number(ticket.price).toLocaleString(),
+                  ),
+                ),
+                React.createElement(
+                  "p",
+                  {
+                    style: {
+                      color: "rgba(255,255,255,0.4)",
+                      fontSize: 12,
+                      marginTop: 4,
+                    },
+                  },
+                  "One-time payment • No hidden fees",
                 ),
               ),
-            ),
 
-            // CTA
+              // Features
+              React.createElement(
+                "ul",
+                {
+                  style: {
+                    listStyle: "none",
+                    padding: 0,
+                    margin: "0 0 24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                  },
+                },
+                ticket.features.map((f, j) =>
+                  React.createElement(
+                    "li",
+                    {
+                      key: j,
+                      style: {
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        color: "rgba(255,255,255,0.75)",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                      },
+                    },
+                    React.createElement(
+                      "span",
+                      {
+                        style: {
+                          color: isExclusive ? "#f3e5f5" : "#e040fb",
+                          fontWeight: 700,
+                        },
+                      },
+                      "✓",
+                    ),
+                    f,
+                  ),
+                ),
+              ),
+
+              // CTA
+              React.createElement(
+                "button",
+                {
+                  onClick: () => {
+                    sessionStorage.setItem("mcfabs_selected_ticket", ticket.id);
+                    setPage("register");
+                  },
+                  style: {
+                    width: "100%",
+                    padding: "14px 0",
+                    borderRadius: 12,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    border: "none",
+                    fontFamily: "Inter, sans-serif",
+                    background: isPopular
+                      ? "linear-gradient(135deg, #e040fb, #c2185b)"
+                      : isExclusive
+                        ? "linear-gradient(135deg, #e040fb, #f3e5f5)"
+                        : "rgba(255,255,255,0.08)",
+                    color: "white",
+                    transition: "all 0.2s ease",
+                  },
+                  onMouseEnter: (e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 8px 24px rgba(194,24,91,0.3)";
+                  },
+                  onMouseLeave: (e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "none";
+                  },
+                },
+                "Register Now",
+              ),
+            );
+          }),
+
+          // Availability note
+          React.createElement(
+            "p",
+            {
+              style: {
+                color: "rgba(243,229,245,0.7)",
+                fontSize: 14,
+                marginTop: 8,
+              },
+            },
+            "⚠️ Limited seats available. Register early to secure your spot — late registration incurs a higher cost.",
+          ),
+        ),
+
+        // RIGHT — Theme poster
+        React.createElement(
+          "div",
+          {
+            style: {
+              position: "sticky",
+              top: 100,
+              borderRadius: 20,
+              overflow: "hidden",
+              border: "2px solid rgba(194,24,91,0.3)",
+              boxShadow: "0 24px 60px rgba(194,24,91,0.25)",
+            },
+          },
+          React.createElement("img", {
+            src: "theme-poster.jpg",
+            alt: "MC FABS Masterclass Theme Poster",
+            style: { width: "100%", display: "block" },
+          }),
+          // Poster footer CTA
+          React.createElement(
+            "div",
+            {
+              style: {
+                background:
+                  "linear-gradient(135deg, rgba(194,24,91,0.9), rgba(106,5,114,0.95))",
+                padding: "20px 24px",
+                textAlign: "center",
+              },
+            },
+            React.createElement(
+              "p",
+              {
+                style: {
+                  color: "rgba(255,255,255,0.8)",
+                  fontSize: 13,
+                  marginBottom: 12,
+                  fontFamily: "Inter, sans-serif",
+                },
+              },
+              "📅 September 12th, 2026 • Kano, Nigeria",
+            ),
             React.createElement(
               "button",
               {
-                onClick: () => {
-                  sessionStorage.setItem("mcfabs_selected_ticket", ticket.id);
-                  setPage("register");
-                },
+                onClick: () => setPage("register"),
                 style: {
-                  width: "100%",
-                  maxWidth: 300,
-                  padding: "14px 0",
-                  borderRadius: 12,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  cursor: "pointer",
+                  background: "white",
+                  color: "#c2185b",
                   border: "none",
+                  borderRadius: 10,
+                  padding: "12px 32px",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: "pointer",
                   fontFamily: "Inter, sans-serif",
-                  background: isPopular
-                    ? "linear-gradient(135deg, #e040fb, #c2185b)"
-                    : isExclusive
-                      ? "linear-gradient(135deg, #e040fb, #f3e5f5)"
-                      : "rgba(255,255,255,0.08)",
-                  color: "white",
-                  transition: "all 0.2s ease",
-                },
-                onMouseEnter: (e) => {
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = "0 8px 24px rgba(194,24,91,0.3)";
-                },
-                onMouseLeave: (e) => {
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "none";
+                  width: "100%",
                 },
               },
-              `Register`,
+              "🎟️ Secure Your Seat Now",
             ),
-          );
-        }),
-      ),
-
-      // Availability note
-      React.createElement(
-        "p",
-        {
-          style: {
-            textAlign: "center",
-            color: "rgba(243,229,245,0.7)",
-            fontSize: 14,
-            marginTop: 32,
-          },
-        },
-        "⚠️ Limited seats available. Register early to secure your spot, late regitration incure more cost.",
+          ),
+        ),
       ),
     ),
   );
@@ -1657,7 +1951,7 @@ function FAQSection() {
     },
     {
       q: "Where exactly is the venue?",
-      a: "The address and detailed directions to the venue will be sent to all registered attendees and would be revealed on your ticket once payment has been confirmed autiomatically.",
+      a: "The address and detailed directions to the venue will be sent to all registered attendees and revealed on your ticket once payment has been confirmed automatically.",
     },
     {
       q: "What should I bring on event day?",
@@ -1675,10 +1969,7 @@ function FAQSection() {
 
   return React.createElement(
     "section",
-    {
-      id: "faq",
-      style: { padding: "100px 24px", background: "#1a0a2e" },
-    },
+    { id: "faq", style: { padding: "100px 24px", background: "#1a0a2e" } },
     React.createElement(
       "div",
       { className: "max-w-3xl mx-auto" },
@@ -1687,7 +1978,6 @@ function FAQSection() {
         title: "Frequently Asked Questions",
         subtitle: "Have questions? We have answers.",
       }),
-
       React.createElement(
         "div",
         {
@@ -1724,7 +2014,7 @@ function FAQSection() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "18px 22px",
-                  background: "rgba(194, 24, 92, 0.12)",
+                  background: "none",
                   border: "none",
                   color: "white",
                   fontSize: 15,
@@ -1774,9 +2064,7 @@ function FAQSection() {
 function CTASection({ setPage }) {
   return React.createElement(
     "section",
-    {
-      style: { padding: "80px 24px" },
-    },
+    { style: { padding: "80px 24px" } },
     React.createElement(
       "div",
       { className: "max-w-4xl mx-auto" },
@@ -1826,9 +2114,8 @@ function CTASection({ setPage }) {
               style: {
                 color: "rgba(255,255,255,0.6)",
                 fontSize: 17,
-                marginBottom: 32,
-                maxWidth: 480,
                 margin: "0 auto 32px",
+                maxWidth: 480,
                 lineHeight: 1.7,
               },
             },
