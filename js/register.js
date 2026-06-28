@@ -76,49 +76,43 @@ function RegisterPage({ setPage }) {
   // ── Paystack + Zainpay payment ────────────────────────────
   const handlePayment = async () => {
     if (!attendee) return;
+
     setLoading(true);
-    toast.info("Opening payment gateway...");
+    toast.info("Opening secure payment gateway...");
 
     try {
-      await PaystackPay.initialize(
-        attendee,
-        async (paymentData) => {
-          console.info("Paystack success callback", paymentData);
-          toast.loading("Confirming payment...");
-          const confirmRes = await DB.confirmPayment(attendee.id, paymentData);
-          const updated =
-            confirmRes && confirmRes.data ? confirmRes.data : confirmRes;
-          const updatedAttendee = updated || {
-            ...attendee,
-            ...paymentData,
-            payment_status: "paid",
-          };
-          setAttendee(updatedAttendee);
-
-          toast.info("Generating your QR code...");
-          const qrUrl = await QRGen.generate(updatedAttendee);
-          setQrDataUrl(qrUrl);
-          if (qrUrl) await DB.updateQRCode(updatedAttendee.id, qrUrl);
-
-          toast.info("Generating your PDF ticket...");
-          const pdf = await PDFTicket.generate(updatedAttendee);
-          setPdfDataUri(pdf);
-
-          await EmailService.sendTicketEmail(updatedAttendee);
-
-          toast.success("🎉 Payment confirmed! Your ticket is ready!");
-          setStep(3);
+      const response = await fetch("/api/initialize-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        () => {
-          toast.warning("Payment cancelled. You can try again anytime.");
-          setLoading(false);
-        },
-      );
+        body: JSON.stringify({
+          amount: selectedTicket?.price || 30000,
+          txnRef: `MCFABS-${attendee.id}-${Date.now()}`,
+          mobileNumber: attendee.phone,
+          emailAddress: attendee.email,
+          isTest: true, // change to false for production
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || result.message || "Failed to initialize payment",
+        );
+      }
+
+      if (!result.redirectUrl) {
+        throw new Error("No payment URL returned from ZainPay");
+      }
+
+      window.location.href = result.redirectUrl;
     } catch (err) {
-      toast.error(
-        "Payment initialization failed. Please check your connection and try again.",
-      );
       console.error(err);
+      toast.error(
+        err.message || "Payment initialization failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -179,7 +173,7 @@ function RegisterPage({ setPage }) {
     }
   };
 
-  const isDemoMode = CONFIG.PAYSTACK_PUBLIC_KEY.includes("YOUR_PAYSTACK");
+  const isDemoMode = (CONFIG.ZAINPAY_PUBLIC_KEY || "").includes("YOUR_ZAINPAY");
 
   return React.createElement(
     "div",
