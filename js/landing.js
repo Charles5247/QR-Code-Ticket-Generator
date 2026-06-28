@@ -1592,7 +1592,7 @@ function TestimonialsSection() {
   );
 }
 
-// ─── Pricing Section (split layout: left = ticket info, right = theme-poster) ─
+// ─── Pricing Section (split layout: left = ticket info, right = pricing-poster) ─
 function PricingSection({ setPage }) {
   return React.createElement(
     "section",
@@ -1864,7 +1864,7 @@ function PricingSection({ setPage }) {
           ),
         ),
 
-        // RIGHT — Theme poster
+        // RIGHT — Pricing poster
         React.createElement(
           "div",
           {
@@ -1878,7 +1878,7 @@ function PricingSection({ setPage }) {
             },
           },
           React.createElement("img", {
-            src: "theme-poster.jpg",
+            src: "flier-pricing.jpg",
             alt: "MC FABS Masterclass Theme Poster",
             style: { width: "100%", height: "70vh", display: "block" },
           }),
