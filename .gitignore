@@ -8,3 +8,6 @@ yarn-error.log*
 .env.local
 .vscode/
 Thumbs.db
+.mp4
+.mov
+.avi
