@@ -3,8 +3,8 @@
 // ============================================================
 
 // ─── Media URLs — update these when ready ────────────────────────────────────
-const HERO_VIDEO_URL = "fab-talk.mp4"; // paste your .mp4 or hosted video URL here
-const HERO_VIDEO_POSTER = "theme-poster.jpg"; // optional: thumbnail shown before video plays
+const HERO_VIDEO_URL = ""; // paste your .mp4 or hosted video URL here
+const HERO_VIDEO_POSTER = ""; // optional: thumbnail shown before video plays
 // ─────────────────────────────────────────────────────────────────────────────
 
 function LandingPage({ setPage }) {
