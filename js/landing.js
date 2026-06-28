@@ -3,8 +3,8 @@
 // ============================================================
 
 // ─── Media URLs — update these when ready ────────────────────────────────────
-const HERO_VIDEO_URL = ""; // paste your .mp4 or hosted video URL here
-const HERO_VIDEO_POSTER = ""; // optional: thumbnail shown before video plays
+const HERO_VIDEO_URL = "fab-talk.mp4"; // paste your .mp4 or hosted video URL here
+const HERO_VIDEO_POSTER = "theme-poster.jpg"; // optional: thumbnail shown before video plays
 // ─────────────────────────────────────────────────────────────────────────────
 
 function LandingPage({ setPage }) {
@@ -227,6 +227,7 @@ function HeroSection({ setPage }) {
     React.createElement("div", {
       style: {
         position: "absolute",
+
         inset: 0,
         background:
           "linear-gradient(135deg, rgba(26,10,46,0.92) 0%, rgba(106,5,114,0.85) 100%)",
