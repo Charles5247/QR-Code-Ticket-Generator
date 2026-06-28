@@ -72,7 +72,10 @@ app.post("/api/initialize-payment", async (req, res) => {
     const responseText = await response.text();
 
     console.log("ZainPay Status:", response.status);
-    console.log("ZainPay Response:", responseText);
+    console.log("================================");
+    console.log("ZAINPAY RESPONSE");
+    console.log(responseText);
+    console.log("================================");
 
     let result;
 
@@ -99,9 +102,12 @@ app.post("/api/initialize-payment", async (req, res) => {
   } catch (err) {
     console.error("Payment Initialization Error:", err);
 
+    console.log("RAW ZAINPAY RESPONSE:");
+    console.log(responseText);
+
     return res.status(500).json({
-      error: err.message,
-      stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      error: "Invalid response from ZainPay",
+      raw: responseText,
     });
   }
 });
