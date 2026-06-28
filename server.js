@@ -20,7 +20,38 @@ app.post("/api/initialize-payment", async (req, res) => {
     ? process.env.ZAINPAY_TEST_ZAINBOX_CODE
     : process.env.ZAINPAY_LIVE_ZAINBOX_CODE;
 
+  if (!secretKey) {
+    return res.status(500).json({
+      error: "Missing ZAINPAY secret key",
+    });
+  }
+
+  if (!zainboxCode) {
+    return res.status(500).json({
+      error: "Missing ZAINPAY zainbox code",
+    });
+  }
+
   try {
+    console.log({
+      isTest,
+      hasSecretKey: !!secretKey,
+      hasZainboxCode: !!zainboxCode,
+      publicUrl: process.env.PUBLIC_URL,
+    });
+
+    if (!secretKey) {
+      return res.status(500).json({
+        error: "Missing ZAINPAY secret key",
+      });
+    }
+
+    if (!zainboxCode) {
+      return res.status(500).json({
+        error: "Missing ZAINPAY zainbox code",
+      });
+    }
+
     const response = await fetch(`${baseUrl}/zainbox/card/initialize/payment`, {
       method: "POST",
       headers: {
@@ -38,11 +69,40 @@ app.post("/api/initialize-payment", async (req, res) => {
       }),
     });
 
-    const result = await response.json();
-    if (result.code !== "00") return res.status(400).json(result);
-    res.json({ redirectUrl: result.data });
+    const responseText = await response.text();
+
+    console.log("ZainPay Status:", response.status);
+    console.log("ZainPay Response:", responseText);
+
+    let result;
+
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      return res.status(500).json({
+        error: "Invalid response from ZainPay",
+        raw: responseText,
+      });
+    }
+
+    if (!response.ok) {
+      return res.status(response.status).json(result);
+    }
+
+    if (result.code !== "00") {
+      return res.status(400).json(result);
+    }
+
+    return res.json({
+      redirectUrl: result.data,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Payment Initialization Error:", err);
+
+    return res.status(500).json({
+      error: err.message,
+      stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    });
   }
 });
 
