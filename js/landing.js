@@ -100,7 +100,7 @@ function FlierPopup() {
       ),
       // Flier image
       React.createElement("img", {
-        src: "flier-popup.jpg",
+        src: "/flier-popup.jpg",
         alt: "MC FABS Masterclass Event Flier",
         style: { width: "100%", display: "block" },
       }),
