@@ -48,7 +48,7 @@ app.post("/api/initialize-payment", async (req, res) => {
 
 // ── Serve the built Vite app for everything else ────────────────────────────
 app.use(express.static(path.join(__dirname, "dist")));
-app.get("*", (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
