@@ -448,7 +448,7 @@ function RegistrationForm({
                 value: form.gender,
                 onChange: (e) => update("gender", e.target.value),
                 style: {
-                  background: "rgba(255,255,255,0.05)",
+                  background: "rgba(73, 5, 78, 0.9) ",
                   color: form.gender ? "white" : "rgba(255,255,255,0.3)",
                 },
               },
@@ -967,13 +967,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
               gap: 8,
             },
           },
-          [
-            "💳 Card",
-            "🏦 Bank Transfer",
-            "📱 USSD",
-            "📲 Mobile Money",
-            "🏧 Bank (Zainpay)",
-          ].map((method) =>
+          ["💳 Card", "🏦 Bank Transfer"].map((method) =>
             React.createElement(
               "span",
               {

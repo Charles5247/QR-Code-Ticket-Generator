@@ -270,72 +270,48 @@ const PDFTicket = {
   },
 };
 
-// ─── Paystack Integration ─────────────────────────────────────────────────────
+// ─── Zainpay Integration ──────────────────────────────────────────────────────
 const PaystackPay = {
   async initialize(attendee, onSuccess, onClose) {
-    if (typeof PaystackPop === "undefined") {
-      // Load Paystack script dynamically from local vendor assets
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "vendor/js/paystack-inline.js";
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    }
-
     const ticket = CONFIG.TICKETS.find(
       (t) => t.id === attendee.ticket_category,
     );
-    const amount = ticket ? ticket.price * 100 : 15000 * 100; // Convert to kobo
+    if (!ticket)
+      throw new Error(`Unknown ticket category: ${attendee.ticket_category}`);
 
-    const handler = PaystackPop.setup({
-      key: CONFIG.PAYSTACK_PUBLIC_KEY,
-      email: attendee.email,
-      amount: amount,
-      currency: CONFIG.CURRENCY_CODE,
-      ref: `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
-      metadata: {
-        custom_fields: [
-          {
-            display_name: "Attendee Name",
-            variable_name: "attendee_name",
-            value: attendee.full_name,
-          },
-          {
-            display_name: "Ticket Code",
-            variable_name: "ticket_code",
-            value: attendee.ticket_code,
-          },
-          {
-            display_name: "Seat Number",
-            variable_name: "seat_number",
-            value: attendee.seat_number,
-          },
-        ],
-      },
-      callback: (response) => {
-        onSuccess({
-          reference: response.reference,
-          amount: ticket ? ticket.price : 15000,
-          status: "paid",
-        });
-      },
-      onClose: () => {
-        if (onClose) onClose();
-      },
+    const amount = String(ticket.price);
+    const txnRef = `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+    sessionStorage.setItem(
+      "mcfabs_pending_txn",
+      JSON.stringify({ txnRef, ticket: ticket.id }),
+    );
+
+    const res = await fetch("/api/initialize-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount,
+        txnRef,
+        mobileNumber: attendee.phone,
+        emailAddress: attendee.email,
+        isTest: CONFIG.ZAINPAY_IS_TEST,
+      }),
     });
 
-    handler.openIframe();
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.description || "Payment initialization failed");
+    }
+
+    const { redirectUrl } = await res.json();
+    window.location.href = redirectUrl;
   },
 };
-
 // ─── Email Service (Simulated) ────────────────────────────────────────────────
 const EmailService = {
   async sendTicketEmail(attendee) {
     // In production: call Supabase Edge Function or email API
     console.log(`📧 Sending ticket email to ${attendee.email}`);
-    // Simulate success
     return { success: true };
   },
 };
