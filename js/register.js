@@ -80,6 +80,17 @@ function RegisterPage({ setPage }) {
     setLoading(true);
     toast.info("Opening secure payment gateway...");
 
+    console.log("Calling ZainPay:", {
+      baseUrl,
+      amount,
+      txnRef,
+      mobileNumber,
+      emailAddress,
+      zainboxCode,
+    });
+
+    console.log("Endpoint:", `${baseUrl}/zainbox/card/initialize/payment`);
+
     try {
       const response = await fetch("/api/initialize-payment", {
         method: "POST",
