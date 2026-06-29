@@ -36,22 +36,25 @@ app.post("/api/initialize-payment", async (req, res) => {
       publicUrl: process.env.PUBLIC_URL,
     });
 
-    const response = await fetch(`${baseUrl}/zainbox/card/initialize/payment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${secretKey}`,
+    const response = await fetch(
+      `${baseUrl}/zainbox/card/initialize/payment`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${secretKey}`,
+        },
+        body: JSON.stringify({
+          amount,
+          txnRef,
+          mobileNumber,
+          zainboxCode,
+          emailAddress,
+          callBackUrl: `${process.env.PUBLIC_URL}/ticket`,
+          currencyCode: "NGN",
+        }),
       },
-      body: JSON.stringify({
-        amount,
-        txnRef,
-        mobileNumber,
-        zainboxCode,
-        emailAddress,
-        callBackUrl: `${process.env.PUBLIC_URL}/ticket`,
-        currencyCode: "NGN",
-      }),
-    });
+    );
 
     responseText = await response.text();
 
