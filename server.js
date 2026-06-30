@@ -142,7 +142,8 @@ app.post("/api/initialize-payment", async (req, res) => {
     callBackUrl,
     allowRecurringPayment: false,
     currencyCode: "NGN",
-    logoUrl: process.env.LOGO_URL || "",
+    logoUrl:
+      process.env.LOGO_URL || "https://fabs-masterclass.onrender.com/fabs.jpg",
     ...(resolvedPublicKey && { publicKey: resolvedPublicKey }),
   };
 
@@ -164,7 +165,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${publicKey}`,
+        Authorization: `Bearer ${secretKey}`,
       },
       body: JSON.stringify(payload),
     });
@@ -243,7 +244,7 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
     const response = await fetch(verifyUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${pulicKey}`,
+        Authorization: `Bearer ${secretKey}`,
         "Content-Type": "application/json",
       },
     });
