@@ -279,8 +279,7 @@ const ZainpayPay = {
     if (!ticket)
       throw new Error(`Unknown ticket category: ${attendee.ticket_category}`);
 
-    // Amount must be in kobo (smallest NGN unit) for ZainPay
-    // ZainPay actually expects the amount in kobo (multiply by 100)
+    // Amount in kobo (smallest NGN unit) — ZainPay expects amount * 100
     const amountKobo = String(ticket.price * 100);
     const txnRef = `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
 
@@ -295,6 +294,18 @@ const ZainpayPay = {
       }),
     );
 
+    // Pick the correct public key based on test/live mode
+    const publicKey = CONFIG.ZAINPAY_IS_TEST
+      ? CONFIG.ZAINPAY_TEST_PUBLIC_KEY
+      : CONFIG.ZAINPAY_LIVE_PUBLIC_KEY;
+
+    console.log(
+      `[ZainpayPay] Mode: ${CONFIG.ZAINPAY_IS_TEST ? "TEST/SANDBOX" : "LIVE"}`,
+    );
+    console.log(
+      `[ZainpayPay] Using public key: ${publicKey ? publicKey.substring(0, 8) + "..." : "MISSING"}`,
+    );
+
     const res = await fetch("/api/initialize-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -304,6 +315,7 @@ const ZainpayPay = {
         mobileNumber: attendee.phone || "08000000000",
         emailAddress: attendee.email,
         isTest: CONFIG.ZAINPAY_IS_TEST,
+        publicKey, // ← sent to server so it can include in ZainPay payload
       }),
     });
 
@@ -330,7 +342,6 @@ const ZainpayPay = {
     }
 
     // ZainPay returns { code: "00", data: { paymentUrl | checkoutUrl | redirectUrl } }
-    // Try all known field names for the redirect URL
     const redirectUrl =
       result.data?.paymentUrl ||
       result.data?.checkoutUrl ||
@@ -352,6 +363,7 @@ const ZainpayPay = {
     window.location.href = redirectUrl;
   },
 };
+
 // ─── Email Service (Simulated) ────────────────────────────────────────────────
 const EmailService = {
   async sendTicketEmail(attendee) {

@@ -35,8 +35,13 @@ app.get("/api/diagnostics", (_req, res) => {
   res.json({
     environment: process.env.NODE_ENV || "production",
     zainpay_mode: isTest ? "sandbox" : "live",
-    has_test_key: !!process.env.ZAINPAY_TEST_SECRET_KEY,
-    has_live_key: !!process.env.ZAINPAY_LIVE_SECRET_KEY,
+    // Secret keys — only confirm presence, never expose values
+    has_test_secret_key: !!process.env.ZAINPAY_TEST_SECRET_KEY,
+    has_live_secret_key: !!process.env.ZAINPAY_LIVE_SECRET_KEY,
+    // Public keys — also only confirm presence
+    has_test_public_key: !!process.env.ZAINPAY_TEST_PUBLIC_KEY,
+    has_live_public_key: !!process.env.ZAINPAY_LIVE_PUBLIC_KEY,
+    // Zainbox codes
     has_test_zainbox: !!process.env.ZAINPAY_TEST_ZAINBOX_CODE,
     has_live_zainbox: !!process.env.ZAINPAY_LIVE_ZAINBOX_CODE,
     has_public_url: !!process.env.PUBLIC_URL,
@@ -47,11 +52,20 @@ app.get("/api/diagnostics", (_req, res) => {
 
 // ── ZainPay: Initialize Payment ────────────────────────────────────────────
 // POST /api/initialize-payment
-// Body: { amount, txnRef, mobileNumber, emailAddress, isTest }
+// Body: { amount, txnRef, mobileNumber, emailAddress, isTest, publicKey }
 app.post("/api/initialize-payment", async (req, res) => {
-  console.log("[initialize-payment] Incoming body:", JSON.stringify(req.body));
+  console.log(
+    "[initialize-payment] Incoming body:",
+    JSON.stringify({
+      ...req.body,
+      publicKey: req.body.publicKey
+        ? req.body.publicKey.substring(0, 8) + "..."
+        : "missing",
+    }),
+  );
 
-  const { amount, txnRef, mobileNumber, emailAddress, isTest } = req.body;
+  const { amount, txnRef, mobileNumber, emailAddress, isTest, publicKey } =
+    req.body;
 
   // ─── Input validation ────────────────────────────────────────────────────
   if (!amount || !txnRef || !emailAddress) {
@@ -61,8 +75,7 @@ app.post("/api/initialize-payment", async (req, res) => {
   }
 
   // ─── Determine environment ───────────────────────────────────────────────
-  // isTest can come from the request body OR fall back to server env.
-  // Server env wins when explicitly set to "false" (go-live toggle).
+  // Server env ZAINPAY_IS_TEST wins when explicitly set to "false" (go-live).
   const useTest =
     process.env.ZAINPAY_IS_TEST === "false" ? false : isTest !== false;
 
@@ -70,9 +83,16 @@ app.post("/api/initialize-payment", async (req, res) => {
     ? "https://sandbox.zainpay.ng"
     : "https://api.zainpay.ng";
 
+  // ─── Resolve keys ────────────────────────────────────────────────────────
+  // Secret key: always from server environment variables (never from frontend)
   const secretKey = useTest
     ? process.env.ZAINPAY_TEST_SECRET_KEY
     : process.env.ZAINPAY_LIVE_SECRET_KEY;
+
+  // Public key: prefer server env variable, fall back to what frontend sent
+  const resolvedPublicKey = useTest
+    ? process.env.ZAINPAY_TEST_PUBLIC_KEY || publicKey || ""
+    : process.env.ZAINPAY_LIVE_PUBLIC_KEY || publicKey || "";
 
   const zainboxCode = useTest
     ? process.env.ZAINPAY_TEST_ZAINBOX_CODE
@@ -85,7 +105,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       useTest ? "sandbox" : "live",
     );
     return res.status(500).json({
-      error: `Missing ZAINPAY secret key for ${useTest ? "sandbox" : "live"} mode. Set ZAINPAY_${useTest ? "TEST" : "LIVE"}_SECRET_KEY on the server.`,
+      error: `Missing ZAINPAY secret key for ${useTest ? "sandbox" : "live"} mode. Set ZAINPAY_${useTest ? "TEST" : "LIVE"}_SECRET_KEY on Render.`,
     });
   }
 
@@ -95,9 +115,15 @@ app.post("/api/initialize-payment", async (req, res) => {
       useTest ? "sandbox" : "live",
     );
     return res.status(500).json({
-      error: `Missing ZAINPAY zainbox code for ${useTest ? "sandbox" : "live"} mode. Set ZAINPAY_${useTest ? "TEST" : "LIVE"}_ZAINBOX_CODE on the server.`,
+      error: `Missing ZAINPAY zainbox code for ${useTest ? "sandbox" : "live"} mode. Set ZAINPAY_${useTest ? "TEST" : "LIVE"}_ZAINBOX_CODE on Render.`,
     });
   }
+
+  console.log(
+    `[initialize-payment] Mode: ${useTest ? "SANDBOX" : "LIVE"}`,
+    `| publicKey present: ${!!resolvedPublicKey}`,
+    `| secretKey present: ${!!secretKey}`,
+  );
 
   // ─── Build callBackUrl ───────────────────────────────────────────────────
   const publicUrl = (process.env.PUBLIC_URL || "http://localhost:3000").replace(
@@ -108,7 +134,7 @@ app.post("/api/initialize-payment", async (req, res) => {
 
   // ─── Build the ZainPay payload ───────────────────────────────────────────
   const payload = {
-    amount: String(amount), // ZainPay expects string
+    amount: String(amount),
     txnRef: String(txnRef),
     mobileNumber: mobileNumber ? String(mobileNumber) : "08000000000",
     zainboxCode: String(zainboxCode),
@@ -117,6 +143,7 @@ app.post("/api/initialize-payment", async (req, res) => {
     allowRecurringPayment: false,
     currencyCode: "NGN",
     logoUrl: process.env.LOGO_URL || "",
+    ...(resolvedPublicKey && { publicKey: resolvedPublicKey }),
   };
 
   console.log(
@@ -125,7 +152,11 @@ app.post("/api/initialize-payment", async (req, res) => {
   );
   console.log(
     "[initialize-payment] Payload:",
-    JSON.stringify({ ...payload, zainboxCode: "***" }),
+    JSON.stringify({
+      ...payload,
+      zainboxCode: "***",
+      publicKey: resolvedPublicKey ? "***" : "(none)",
+    }),
   );
 
   try {
@@ -138,7 +169,6 @@ app.post("/api/initialize-payment", async (req, res) => {
       body: JSON.stringify(payload),
     });
 
-    // Read body as text first so we can log and still parse
     const responseText = await response.text();
 
     console.log("[initialize-payment] ZainPay HTTP status:", response.status);
@@ -147,7 +177,6 @@ app.post("/api/initialize-payment", async (req, res) => {
       responseText.substring(0, 500),
     );
 
-    // Try to parse JSON
     let result;
     try {
       result = JSON.parse(responseText);
@@ -163,7 +192,6 @@ app.post("/api/initialize-payment", async (req, res) => {
       });
     }
 
-    // Forward the parsed result (with ZainPay's HTTP status code)
     return res.status(response.status).json(result);
   } catch (err) {
     console.error(
@@ -180,7 +208,7 @@ app.post("/api/initialize-payment", async (req, res) => {
 
 // ── ZainPay: Verify Payment ────────────────────────────────────────────────
 // GET /api/verify-payment/:txnRef
-// Query param: ?isTest=true|false  (optional, server env takes precedence when set)
+// Query param: ?isTest=true|false  (optional, server env takes precedence)
 app.get("/api/verify-payment/:txnRef", async (req, res) => {
   const { txnRef } = req.params;
 
@@ -207,7 +235,6 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
     });
   }
 
-  // ZainPay verify endpoint for card/redirect transactions
   const verifyUrl = `${baseUrl}/zainbox/card/verify/v2/payment/${encodeURIComponent(txnRef)}`;
 
   console.log("[verify-payment] Calling:", verifyUrl);
@@ -238,7 +265,6 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
       });
     }
 
-    // ZainPay success: { code: "00", data: { txnStatus: "success", amount, ... } }
     const isSuccess =
       result.code === "00" &&
       (result.data?.txnStatus === "success" ||
@@ -273,6 +299,12 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`[server] MC FABS Masterclass server started on port ${PORT}`);
   console.log(
     `[server] ZainPay mode: ${process.env.ZAINPAY_IS_TEST === "false" ? "LIVE" : "SANDBOX"}`,
+  );
+  console.log(
+    `[server] Test public key set: ${!!process.env.ZAINPAY_TEST_PUBLIC_KEY}`,
+  );
+  console.log(
+    `[server] Live public key set: ${!!process.env.ZAINPAY_LIVE_PUBLIC_KEY}`,
   );
   console.log(
     `[server] PUBLIC_URL: ${process.env.PUBLIC_URL || "(not set — defaulting to localhost)"}`,

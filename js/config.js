@@ -11,11 +11,19 @@ const CONFIG = {
     "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
   // ── Zainpay ───────────────────────────────────────────────
-  // IMPORTANT: The SECRET key and zainbox code live ONLY on the server
-  // (server.js reads them from Render environment variables).
-  // This flag tells the frontend whether to use sandbox or live mode.
-  // Set to false when you are ready to go live.
+  // PUBLIC keys are safe to put here — they are browser-facing.
+  // SECRET keys and zainbox codes live ONLY in Render environment variables.
+  //
+  // Set ZAINPAY_IS_TEST to false when you are ready to go live.
   ZAINPAY_IS_TEST: true, // ← change to false for production live payments
+
+  // Replace these with your actual keys from the ZainPay dashboard.
+  // Test public key  → used when ZAINPAY_IS_TEST = true
+  // Live public key  → used when ZAINPAY_IS_TEST = false
+  ZAINPAY_TEST_PUBLIC_KEY:
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3phaW5wYXkubmciLCJpYXQiOjE3ODI1MTY2NzQsImlkIjplMzJmMmY0Yy1lNWU0LTQxZjctYTUyNy0wZWM5MDBlNTZhNjAsIm5hbWUiOmNheGlldGVjaG5vbG9naWVzQGdtYWlsLmNvbSwicm9sZSI6Y2F4aWV0ZWNobm9sb2dpZXNAZ21haWwuY29tLCJzZWNyZXRLZXkiOlhxbTBubTdEVjd5NWxFb2ZmRlR4c2Q2MkxXaG5obFRGTEVoSll1U1BSODN6cH0.X94cxjkjmic-DNAkNngYQ80YYQ_sXO0sMYSJ1Va4Stw", // ← paste test public key here
+  ZAINPAY_LIVE_PUBLIC_KEY:
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3phaW5wYXkubmciLCJpYXQiOjE3ODI2NTY4MjYsImlkIjo3OTBkOTBjNy1hNTUxLTRhYzYtYjc5Zi1iZTBkY2U3OGI4NTcsIm5hbWUiOmNheGlldGVjaG5vbG9naWVzQGdtYWlsLmNvbSwicm9sZSI6Y2F4aWV0ZWNobm9sb2dpZXNAZ21haWwuY29tLCJzZWNyZXRLZXkiOm1LQ2pTMmpseXVLbTdpWkszVEZTNXkyemw1QlQ2SEk3d1JBQXRlVmpIREZ4T30._vKo2rP86Z5SdyufiWLGnqpiyh7H3ddqp5PFGVd8TDk", // ← paste live public key here
 
   // ── Event Details ─────────────────────────────────────────
   EVENT: {
@@ -87,8 +95,16 @@ function generateSeatNumber(prefix, index) {
   return `${prefix}-${String(index).padStart(3, "0")}`;
 }
 
+// Helper: returns the correct ZainPay public key based on current mode
+function getZainpayPublicKey() {
+  return CONFIG.ZAINPAY_IS_TEST
+    ? CONFIG.ZAINPAY_TEST_PUBLIC_KEY
+    : CONFIG.ZAINPAY_LIVE_PUBLIC_KEY;
+}
+
 window.CONFIG = CONFIG;
 window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
 window.generateTicketCode = generateTicketCode;
 window.generateSeatNumber = generateSeatNumber;
+window.getZainpayPublicKey = getZainpayPublicKey;
