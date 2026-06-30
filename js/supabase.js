@@ -17,7 +17,7 @@ function getSupabase() {
 }
 
 // ─── Demo Mode (when Supabase not configured) ─────────────────────────────────
-const DEMO_MODE = CONFIG.SUPABASE_URL.includes("YOUR_SUPABASE");
+const DEMO_MODE = !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY;
 
 // In-memory demo store
 const DemoStore = {

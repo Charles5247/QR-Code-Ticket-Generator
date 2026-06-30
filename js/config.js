@@ -4,8 +4,9 @@
 
 const CONFIG = {
   // ── Supabase ──────────────────────────────────────────────
-  SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
+  VITE_SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
+  VITE_SUPABASE_PUBLISHABLE_KEY:
+    "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
   // ── Zainpay ───────────────────────────────────────────────
   // NOTE: Zainpay uses the Redirect payment channel for this app.
@@ -54,8 +55,6 @@ const CONFIG = {
   ],
 
   // ── Admin ─────────────────────────────────────────────────
-  ADMIN_EMAIL: "admin@mcfabs.ng",
-  ADMIN_PASSWORD: "MCFabs2026!Admin",
 
   // ── App ───────────────────────────────────────────────────
   APP_NAME: "MC FABS Exclusive Masterclass 1.0",

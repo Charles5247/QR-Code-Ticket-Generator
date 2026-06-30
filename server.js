@@ -13,9 +13,11 @@ app.post("/api/initialize-payment", async (req, res) => {
   const baseUrl = isTest
     ? "https://sandbox.zainpay.ng"
     : "https://api.zainpay.ng";
+
   const secretKey = isTest
     ? process.env.ZAINPAY_TEST_SECRET_KEY
     : process.env.ZAINPAY_LIVE_SECRET_KEY;
+
   const zainboxCode = isTest
     ? process.env.ZAINPAY_TEST_ZAINBOX_CODE
     : process.env.ZAINPAY_LIVE_ZAINBOX_CODE;
@@ -33,24 +35,19 @@ app.post("/api/initialize-payment", async (req, res) => {
   }
 
   try {
-    console.log({
-      isTest,
-      hasSecretKey: !!secretKey,
-      hasZainboxCode: !!zainboxCode,
-      publicUrl: process.env.PUBLIC_URL,
-    });
+    const payload = {
+      amount,
+      txnRef,
+      mobileNumber,
+      zainboxCode,
+      emailAddress,
+      callBackUrl: `${process.env.PUBLIC_URL}/ticket`,
+      allowRecurringPayment: false,
+      currencyCode: "NGN",
+      logoUrl: "",
+    };
 
-    if (!secretKey) {
-      return res.status(500).json({
-        error: "Missing ZAINPAY secret key",
-      });
-    }
-
-    if (!zainboxCode) {
-      return res.status(500).json({
-        error: "Missing ZAINPAY zainbox code",
-      });
-    }
+    console.log("Sending payload:", payload);
 
     const response = await fetch(`${baseUrl}/zainbox/card/initialize/payment`, {
       method: "POST",
@@ -58,56 +55,31 @@ app.post("/api/initialize-payment", async (req, res) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${secretKey}`,
       },
-      body: JSON.stringify({
-        amount,
-        txnRef,
-        mobileNumber,
-        zainboxCode,
-        emailAddress,
-        callBackUrl: `${process.env.PUBLIC_URL}/ticket`,
-        currencyCode: "NGN",
-      }),
+      body: JSON.stringify(payload),
     });
 
     const responseText = await response.text();
 
-    console.log("ZainPay Status:", response.status);
-    console.log("================================");
-    console.log("ZAINPAY RESPONSE");
-    console.log(responseText);
-    console.log("================================");
+    console.log("Status:", response.status);
+    console.log("Body:", responseText);
 
     let result;
 
     try {
       result = JSON.parse(responseText);
-    } catch (parseError) {
+    } catch {
       return res.status(500).json({
-        error: "Invalid response from ZainPay",
+        error: "Invalid JSON returned from ZainPay",
         raw: responseText,
       });
     }
 
-    if (!response.ok) {
-      return res.status(response.status).json(result);
-    }
-
-    if (result.code !== "00") {
-      return res.status(400).json(result);
-    }
-
-    return res.json({
-      redirectUrl: result.data,
-    });
+    return res.status(response.status).json(result);
   } catch (err) {
-    console.error("Payment Initialization Error:", err);
-
-    console.log("RAW ZAINPAY RESPONSE:");
-    console.log(responseText);
+    console.error(err);
 
     return res.status(500).json({
-      error: "Invalid response from ZainPay",
-      raw: responseText,
+      error: err.message,
     });
   }
 });
