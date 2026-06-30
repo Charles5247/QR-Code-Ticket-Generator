@@ -150,7 +150,10 @@ function RegisterPage({ setPage }) {
     }
   };
 
-  const isDemoMode = CONFIG.ZAINPAY_IS_TEST === undefined;
+  // isDemoMode is true ONLY if the Supabase client is running in demo mode.
+  // The payment path always uses ZainPay (real or sandbox). Use the demo
+  // payment simulation ONLY when the Supabase back-end is not configured.
+  const isDemoMode = window.DEMO_MODE === true;
 
   return React.createElement(
     "div",

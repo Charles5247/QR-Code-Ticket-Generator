@@ -4,18 +4,18 @@
 
 const CONFIG = {
   // ── Supabase ──────────────────────────────────────────────
+  // These are the browser-safe (publishable) keys — NOT the service role key.
+  // Safe to ship in the frontend bundle.
   VITE_SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
   VITE_SUPABASE_PUBLISHABLE_KEY:
     "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
   // ── Zainpay ───────────────────────────────────────────────
-  // NOTE: Zainpay uses the Redirect payment channel for this app.
-  // The SECRET key and zainbox code live ONLY on the server
-  // (see server.js, which reads them from environment variables).
-  // Nothing secret belongs in this file since it ships to the browser.
-  // ZAINPAY_IS_TEST controls whether the frontend asks the server to
-  // initialize a sandbox or live transaction.
-  ZAINPAY_IS_TEST: true, // set false for live
+  // IMPORTANT: The SECRET key and zainbox code live ONLY on the server
+  // (server.js reads them from Render environment variables).
+  // This flag tells the frontend whether to use sandbox or live mode.
+  // Set to false when you are ready to go live.
+  ZAINPAY_IS_TEST: true, // ← change to false for production live payments
 
   // ── Event Details ─────────────────────────────────────────
   EVENT: {
