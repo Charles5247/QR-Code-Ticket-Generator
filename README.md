@@ -17,7 +17,7 @@ A **premium full-stack event registration and ticketing platform** for the MC FA
 | 3-tier ticket pricing display                        | ✅ Complete |
 | Full registration form                               | ✅ Complete |
 | Form validation (name, email, phone)                 | ✅ Complete |
-| Paystack payment integration                         | ✅ Complete |
+| Zainpay payment integration (Redirect channel)        | ✅ Complete |
 | Demo payment mode                                    | ✅ Complete |
 | Unique ticket code generation (MCFABS-2026-XXX-NNNN) | ✅ Complete |
 | Auto seat number assignment (VIP-001, REG-001, etc.) | ✅ Complete |
@@ -54,9 +54,9 @@ A **premium full-stack event registration and ticketing platform** for the MC FA
 mc-fabs-masterclass/
 ├── index.html                     # Main HTML shell (React CDN)
 ├── js/
-│   ├── config.js                  # Event config, tickets, Paystack key
+│   ├── config.js                  # Event config, tickets, Zainpay test-mode flag
 │   ├── supabase.js                # Supabase client + DB service + Auth
-│   ├── utils.js                   # QR gen, PDF gen, Paystack, CSV export
+│   ├── utils.js                   # QR gen, PDF gen, Zainpay (ZainpayPay), CSV export
 │   ├── toast.js                   # Toast notification system
 │   ├── components.js              # Navbar, Footer, Modal, CountdownWidget
 │   ├── landing.js                 # Full event landing page
@@ -67,7 +67,7 @@ mc-fabs-masterclass/
 │   └── app.js                     # Main router
 ├── supabase/
 │   ├── schema.sql                 # PostgreSQL database schema + RLS
-│   └── edge-function-payment-verify.js # Server-side Paystack verification template
+│   └── edge-function-payment-verify.js # Server-side Zainpay verification template
 └── README.md
 ```
 
@@ -79,9 +79,8 @@ This app is a static front-end bundle with no build step required. You can test 
 
 ### Recommended local test steps
 
-1. Update `js/config.js` if you want Supabase or Paystack integration:
+1. Update `js/config.js` if you want Supabase integration, and set up Zainpay credentials (see below):
    - `SUPABASE_URL` and `SUPABASE_ANON_KEY` for Supabase
-   - `PAYSTACK_PUBLIC_KEY` for Paystack
    - Leave placeholder values to run in demo mode
 2. From the project folder, start a local server for the best browser compatibility:
    - With Python 3: `python -m http.server 8000`
@@ -113,8 +112,9 @@ This project can be deployed to Netlify as a static site. There is no build comm
 ### Notes for production
 
 - Netlify only hosts the front-end static files.
-- `js/config.js` must be configured with your own Supabase and Paystack values before deployment.
-- Supabase and Paystack remain external services.
+- `js/config.js` must be configured with your own Supabase values before deployment.
+- Zainpay secret keys live in server environment variables (see `.env.example`), never in `js/config.js`.
+- Supabase and Zainpay remain external services.
 - For server-side payment verification, deploy `supabase/edge-function-payment-verify.js` separately as a Supabase Edge Function.
 
 ---
@@ -146,17 +146,25 @@ SUPABASE_URL: 'https://YOUR_PROJECT.supabase.co',
 SUPABASE_ANON_KEY: 'YOUR_ANON_KEY',
 ```
 
-### 2. Paystack Setup
+### 2. Zainpay Setup
 
-1. Create an account at [paystack.com](https://paystack.com)
-2. Get your **Public Key** from the dashboard
-3. Update `js/config.js`:
+This app uses Zainpay's **Redirect** payment channel for card payments.
 
-```js
-PAYSTACK_PUBLIC_KEY: 'pk_live_YOUR_PUBLIC_KEY',
+1. Create an account at [zainpay.ng](https://zainpay.ng) and create a Zainbox.
+2. Get your **Secret Key** and **Zainbox Code** from the dashboard (separate sandbox and live values).
+3. Copy `.env.example` to `.env` and fill in:
+
+```
+ZAINPAY_TEST_SECRET_KEY=your_sandbox_secret_key
+ZAINPAY_TEST_ZAINBOX_CODE=your_sandbox_zainbox_code
+ZAINPAY_LIVE_SECRET_KEY=your_live_secret_key
+ZAINPAY_LIVE_ZAINBOX_CODE=your_live_zainbox_code
+PUBLIC_URL=https://your-deployed-app-url
 ```
 
-4. For server-side verification, deploy the Edge Function in `supabase/edge-function-payment-verify.js`
+4. `server.js` reads these from `process.env` and calls Zainpay's Redirect/Card initialize endpoint server-side, so the secret key never reaches the browser.
+5. In `js/config.js`, set `ZAINPAY_IS_TEST: true` while testing, and `false` when you switch to live keys.
+6. For server-side payment verification after redirect, deploy the Edge Function in `supabase/edge-function-payment-verify.js`
 
 ### 3. Admin Credentials
 
@@ -194,7 +202,7 @@ ADMIN_PASSWORD: 'your-secure-password',
 | `ticket_category`   | TEXT          | regular / vip / premium     |
 | `ticket_code`       | TEXT (unique) | e.g. MCFABS-2026-VIP-0001   |
 | `seat_number`       | TEXT (unique) | e.g. VIP-001                |
-| `payment_reference` | TEXT          | Paystack reference          |
+| `payment_reference` | TEXT          | Zainpay txnRef               |
 | `payment_status`    | TEXT          | pending / paid / failed     |
 | `amount_paid`       | NUMERIC       | Amount in NGN               |
 | `paid_at`           | TIMESTAMPTZ   | Payment timestamp           |
@@ -225,11 +233,11 @@ User fills form
     ↓
 Attendee record created (status: pending)
     ↓
-Paystack popup opens
+Zainpay Redirect checkout opens
     ↓
 User completes payment
     ↓
-[Production] Edge Function verifies with Paystack API
+[Production] Edge Function verifies with Zainpay API
     ↓
 Attendee record updated (status: paid)
     ↓

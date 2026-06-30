@@ -7,14 +7,14 @@ const CONFIG = {
   SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
   SUPABASE_ANON_KEY: "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
-  // ── Paystack ──────────────────────────────────────────────
-  /*PAYSTACK_PUBLIC_KEY: "",
-  ZAINPAY_PUBLIC_KEY:
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3phaW5wYXkubmciLCJpYXQiOjE3ODI1MTY2NzQsImlkIjplMzJmMmY0Yy1lNWU0LTQxZjctYTUyNy0wZWM5MDBlNTZhNjAsIm5hbWUiOmNheGlldGVjaG5vbG9naWVzQGdtYWlsLmNvbSwicm9sZSI6Y2F4aWV0ZWNobm9sb2dpZXNAZ21haWwuY29tLCJzZWNyZXRLZXkiOlhxbTBubTdEVjd5NWxFb2ZmRlR4c2Q2MkxXaG5obFRGTEVoSll1U1BSODN6cH0.X94cxjkjmic-DNAkNngYQ80YYQ_sXO0sMYSJ1Va4Stw",
-  ZAINPAY_INLINE_KEY:
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3phaW5wYXkubmciLCJpYXQiOjE3ODI1MTY2NzQsImlkIjplMzJmMmY0Yy1lNWU0LTQxZjctYTUyNy0wZWM5MDBlNTZhNjAsIm5hbWUiOmNheGlldGVjaG5vbG9naWVzQGdtYWlsLmNvbSwicm9sZSI6Y2F4aWV0ZWNobm9sb2dpZXNAZ21haWwuY29tLCJzZWNyZXRLZXkiOlhxbTBubTdEVjd5NWxFb2ZmRlR4c2Q2MkxXaG5obFRGTEVoSll1U1BSODN6cH0.Pp8cnRu8ZsNvBcfBXg53rA6bp6avpla3igFGlnIUtWw", // the eyJ... key from your screenshot
-  ZAINPAY_ZAINBOX_CODE: "72469_kFe3zJ2x7Rb4BRyhxiW8", // from Zainboxes section
-  ZAINPAY_IS_TEST: true, // set false for live*/
+  // ── Zainpay ───────────────────────────────────────────────
+  // NOTE: Zainpay uses the Redirect payment channel for this app.
+  // The SECRET key and zainbox code live ONLY on the server
+  // (see server.js, which reads them from environment variables).
+  // Nothing secret belongs in this file since it ships to the browser.
+  // ZAINPAY_IS_TEST controls whether the frontend asks the server to
+  // initialize a sandbox or live transaction.
+  ZAINPAY_IS_TEST: true, // set false for live
 
   // ── Event Details ─────────────────────────────────────────
   EVENT: {

@@ -73,52 +73,18 @@ function RegisterPage({ setPage }) {
     }
   };
 
-  // ── Paystack + Zainpay payment ────────────────────────────
+  // ── Zainpay payment (Redirect channel) ──────────────────────
   const handlePayment = async () => {
     if (!attendee) return;
 
     setLoading(true);
-    toast.info("Opening secure payment gateway...");
-
-    console.log("Calling ZainPay:", {
-      baseUrl,
-      amount,
-      txnRef,
-      mobileNumber,
-      emailAddress,
-      zainboxCode,
-    });
-
-    console.log("Endpoint:", `${baseUrl}/zainbox/card/initialize/payment`);
+    toast.info("Redirecting to secure Zainpay checkout...");
 
     try {
-      const response = await fetch("/api/initialize-payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: selectedTicket?.price || 30000,
-          txnRef: `MCFABS-${attendee.id}-${Date.now()}`,
-          mobileNumber: attendee.phone,
-          emailAddress: attendee.email,
-          isTest: true, // change to false for production
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.error || result.message || "Failed to initialize payment",
-        );
-      }
-
-      if (!result.redirectUrl) {
-        throw new Error("No payment URL returned from ZainPay");
-      }
-
-      window.location.href = result.redirectUrl;
+      await ZainpayPay.initialize(attendee);
+      // ZainpayPay.initialize() navigates the browser away (window.location.href)
+      // on success, so there's nothing further to do here. Execution only
+      // continues past this point if it throws.
     } catch (err) {
       console.error(err);
       toast.error(
@@ -184,7 +150,7 @@ function RegisterPage({ setPage }) {
     }
   };
 
-  const isDemoMode = (CONFIG.ZAINPAY_PUBLIC_KEY || "").includes("YOUR_ZAINPAY");
+  const isDemoMode = CONFIG.ZAINPAY_IS_TEST === undefined;
 
   return React.createElement(
     "div",
@@ -832,7 +798,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
         "p",
         { style: { color: "rgba(255,255,255,0.5)", fontSize: 15 } },
         "Secure payment powered by " +
-          (isDemoMode ? "Demo Mode" : "Paystack × Zainpay"),
+          (isDemoMode ? "Demo Mode" : "Zainpay Secure Checkout"),
       ),
     ),
 
@@ -1016,7 +982,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
           "div",
           null,
           React.createElement("strong", null, "Demo Mode Active. "),
-          "Configure your Paystack public key in js/config.js to enable real payments. This demo simulates a successful payment.",
+          "Set ZAINPAY_TEST_SECRET_KEY and ZAINPAY_TEST_ZAINBOX_CODE on the server to enable real payments. This demo simulates a successful payment.",
         ),
       ),
 
@@ -1066,7 +1032,7 @@ function PaymentStep({ attendee, selectedTicket, loading, onPay, isDemoMode }) {
           flexWrap: "wrap",
         },
       },
-      ["🔒 SSL Secured", "✅ Paystack Verified", "🏦 Zainpay Enabled"].map(
+      ["🔒 SSL Secured", "🏦 Zainpay Verified", "✅ PCI-DSS Compliant"].map(
         (b) =>
           React.createElement(
             "span",

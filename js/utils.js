@@ -270,8 +270,8 @@ const PDFTicket = {
   },
 };
 
-// ─── Zainpay Integration ──────────────────────────────────────────────────────
-const PaystackPay = {
+// ─── Zainpay Integration (Redirect channel) ────────────────────────────────────
+const ZainpayPay = {
   async initialize(attendee, onSuccess, onClose) {
     const ticket = CONFIG.TICKETS.find(
       (t) => t.id === attendee.ticket_category,
@@ -409,7 +409,7 @@ function shareOnWhatsApp(attendee) {
 
 window.QRGen = QRGen;
 window.PDFTicket = PDFTicket;
-window.PaystackPay = PaystackPay;
+window.ZainpayPay = ZainpayPay;
 window.EmailService = EmailService;
 window.getCountdown = getCountdown;
 window.exportCSV = exportCSV;

@@ -1,9 +1,24 @@
 // ============================================================
 // MC FABS MASTERCLASS — Supabase Edge Function
-// Payment Verification (Server-side Paystack verification)
+// Payment Verification (Server-side Zainpay verification)
 // ============================================================
 // Deploy with: supabase functions deploy verify-payment
 // File path: supabase/functions/verify-payment/index.ts
+//
+// This runs AFTER Zainpay redirects the user back to your
+// callBackUrl (see server.js -> callBackUrl: `${PUBLIC_URL}/ticket`).
+// Call this function from js/ticket.js (or wherever the callback
+// page lands) with the txnRef Zainpay appends to the redirect URL,
+// so payment status is confirmed server-side rather than trusted
+// from the frontend/URL alone.
+//
+// NOTE ON THE VERIFY ENDPOINT: Zainpay's card transaction status
+// endpoint path may differ slightly between sandbox/live or SDK
+// versions (their official SDKs call it "verifyCardPaymentV2").
+// Confirm the exact path in your Zainpay dashboard docs or with
+// your Zainpay integration contact before going live; the value
+// below reflects their documented Redirect/Card flow as of this
+// integration but is worth a quick sanity check.
 
 /*
 import { serve } from '../vendor/deno/std@0.168.0/server.ts';
@@ -20,32 +35,47 @@ serve(async (req) => {
   }
 
   try {
-    const { reference, attendee_id } = await req.json();
+    const { txnRef, attendee_id } = await req.json();
 
-    if (!reference || !attendee_id) {
+    if (!txnRef || !attendee_id) {
       return new Response(
-        JSON.stringify({ error: 'Missing reference or attendee_id' }),
+        JSON.stringify({ error: 'Missing txnRef or attendee_id' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verify payment with Paystack
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const isTest = Deno.env.get('ZAINPAY_IS_TEST') === 'true';
+    const baseUrl = isTest
+      ? 'https://sandbox.zainpay.ng'
+      : 'https://api.zainpay.ng';
+    const secretKey = isTest
+      ? Deno.env.get('ZAINPAY_TEST_SECRET_KEY')
+      : Deno.env.get('ZAINPAY_LIVE_SECRET_KEY');
+
+    if (!secretKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing ZAINPAY secret key' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify the card/redirect transaction status with Zainpay.
     const verifyResponse = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
+      `${baseUrl}/zainbox/card/verify/v2/payment/${txnRef}`,
       {
         headers: {
-          'Authorization': `Bearer ${paystackSecretKey}`,
+          'Authorization': `Bearer ${secretKey}`,
           'Content-Type': 'application/json',
         },
       }
     );
 
-    const paystackData = await verifyResponse.json();
+    const zainpayData = await verifyResponse.json();
 
-    if (!paystackData.status || paystackData.data.status !== 'success') {
+    // Zainpay responses use { code: "00", data: { txnStatus: "success", ... } }
+    if (zainpayData.code !== '00' || zainpayData.data?.txnStatus !== 'success') {
       return new Response(
-        JSON.stringify({ error: 'Payment verification failed', details: paystackData }),
+        JSON.stringify({ error: 'Payment verification failed', details: zainpayData }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -56,13 +86,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const amount = paystackData.data.amount / 100; // Convert from kobo
+    const amount = Number(zainpayData.data.amount) || 0;
 
     const { data, error } = await supabase
       .from('attendees')
       .update({
         payment_status: 'paid',
-        payment_reference: reference,
+        payment_reference: txnRef,
         amount_paid: amount,
         paid_at: new Date().toISOString(),
       })
@@ -90,7 +120,9 @@ serve(async (req) => {
 */
 
 // ─── Environment Variables needed in Supabase Dashboard ───────────────────────
-// PAYSTACK_SECRET_KEY = sk_live_YOUR_SECRET_KEY
+// ZAINPAY_IS_TEST = true | false
+// ZAINPAY_TEST_SECRET_KEY = your sandbox secret key
+// ZAINPAY_LIVE_SECRET_KEY = your live secret key
 // SUPABASE_URL = (auto-set by Supabase)
 // SUPABASE_SERVICE_ROLE_KEY = (auto-set by Supabase)
 // EMAIL_SERVICE_API_KEY = your email service key (Resend, SendGrid, etc.)
