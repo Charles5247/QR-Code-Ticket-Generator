@@ -272,38 +272,83 @@ const PDFTicket = {
 
 // ─── Zainpay Integration (Redirect channel) ────────────────────────────────────
 const ZainpayPay = {
-  async initialize(attendee, onSuccess, onClose) {
+  async initialize(attendee) {
     const ticket = CONFIG.TICKETS.find(
       (t) => t.id === attendee.ticket_category,
     );
     if (!ticket)
       throw new Error(`Unknown ticket category: ${attendee.ticket_category}`);
 
-    const amount = String(ticket.price);
+    // Amount must be in kobo (smallest NGN unit) for ZainPay
+    // ZainPay actually expects the amount in kobo (multiply by 100)
+    const amountKobo = String(ticket.price * 100);
     const txnRef = `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+
+    // Persist txnRef AND attendeeId so the callback page can verify & confirm
     sessionStorage.setItem(
       "mcfabs_pending_txn",
-      JSON.stringify({ txnRef, ticket: ticket.id }),
+      JSON.stringify({
+        txnRef,
+        attendeeId: attendee.id,
+        ticketId: ticket.id,
+        amount: ticket.price,
+      }),
     );
 
     const res = await fetch("/api/initialize-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount,
+        amount: amountKobo,
         txnRef,
-        mobileNumber: attendee.phone,
+        mobileNumber: attendee.phone || "08000000000",
         emailAddress: attendee.email,
         isTest: CONFIG.ZAINPAY_IS_TEST,
       }),
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.description || "Payment initialization failed");
+      let errBody;
+      try {
+        errBody = await res.json();
+      } catch {
+        errBody = { error: `HTTP ${res.status}` };
+      }
+      const msg =
+        errBody.description ||
+        errBody.message ||
+        errBody.error ||
+        `Payment initialization failed (HTTP ${res.status})`;
+      throw new Error(msg);
     }
 
-    const { redirectUrl } = await res.json();
+    let result;
+    try {
+      result = await res.json();
+    } catch {
+      throw new Error("Invalid response from payment server");
+    }
+
+    // ZainPay returns { code: "00", data: { paymentUrl | checkoutUrl | redirectUrl } }
+    // Try all known field names for the redirect URL
+    const redirectUrl =
+      result.data?.paymentUrl ||
+      result.data?.checkoutUrl ||
+      result.data?.redirectUrl ||
+      result.redirectUrl ||
+      result.paymentUrl ||
+      null;
+
+    if (!redirectUrl) {
+      console.error("[ZainpayPay] Full response:", JSON.stringify(result));
+      throw new Error(
+        result.description ||
+          result.message ||
+          "ZainPay did not return a payment URL. Check server logs.",
+      );
+    }
+
+    // Redirect the browser to ZainPay checkout page
     window.location.href = redirectUrl;
   },
 };

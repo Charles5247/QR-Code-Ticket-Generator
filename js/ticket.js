@@ -1,5 +1,6 @@
 // ============================================================
 // MC FABS EXCLUSIVE MASTERCLASS — Ticket View Page
+// Handles both manual ticket lookup AND ZainPay payment callback
 // ============================================================
 
 function TicketPage({ setPage }) {
@@ -9,16 +10,164 @@ function TicketPage({ setPage }) {
   const [loading, setLoading] = React.useState(false);
   const [qrDataUrl, setQrDataUrl] = React.useState(null);
   const [pdfDataUri, setPdfDataUri] = React.useState(null);
+  const [verifying, setVerifying] = React.useState(false);
+  const [verifyMessage, setVerifyMessage] = React.useState("");
 
-  // Auto-load if code is in session storage
+  // ── On mount: check for ZainPay callback or session-stored ticket code ────
   React.useEffect(() => {
+    handlePageInit();
+  }, []);
+
+  const handlePageInit = async () => {
+    // ZainPay appends ?txnRef=...&status=... to the callBackUrl
+    // Our callBackUrl is: PUBLIC_URL/#/ticket  (hash-based SPA)
+    // The params are placed after the hash, e.g. /#/ticket?txnRef=...
+    // We parse them from window.location.hash or window.location.search
+    const urlParams = new URLSearchParams(
+      window.location.search ||
+      window.location.hash.split("?")[1] || ""
+    );
+
+    const txnRefFromUrl = urlParams.get("txnRef") || urlParams.get("txnref");
+    const statusFromUrl = urlParams.get("status");
+
+    if (txnRefFromUrl) {
+      // ── ZainPay returned the user here after payment ──────────────────────
+      toast.info("Verifying your payment, please wait…");
+      setVerifying(true);
+      setVerifyMessage("Confirming payment with ZainPay…");
+      await handleZainpayCallback(txnRefFromUrl, statusFromUrl);
+      setVerifying(false);
+      setVerifyMessage("");
+
+      // Clean URL params without navigating away
+      const cleanHash = window.location.hash.split("?")[0];
+      window.history.replaceState(null, "", cleanHash || "#/ticket");
+      return;
+    }
+
+    // ── No callback: check session storage for a previously stored code ─────
     const code = sessionStorage.getItem("mcfabs_view_ticket_code");
     if (code) {
       setSearchCode(code);
       loadTicket(code);
       sessionStorage.removeItem("mcfabs_view_ticket_code");
     }
-  }, []);
+  };
+
+  // ── ZainPay Callback Handler ──────────────────────────────────────────────
+  const handleZainpayCallback = async (txnRef, statusFromUrl) => {
+    try {
+      // Retrieve pending txn info saved before redirect
+      let pendingTxn = null;
+      try {
+        const raw = sessionStorage.getItem("mcfabs_pending_txn");
+        if (raw) pendingTxn = JSON.parse(raw);
+      } catch {}
+
+      // If status from URL is clearly failed, short-circuit
+      if (
+        statusFromUrl &&
+        !["success", "successful", "00"].includes(statusFromUrl.toLowerCase())
+      ) {
+        toast.error("Payment was not successful. Please try again.");
+        return;
+      }
+
+      // Call server-side verification (never trust client-only URL params)
+      setVerifyMessage("Verifying payment with ZainPay…");
+      const verifyRes = await fetch(
+        `/api/verify-payment/${encodeURIComponent(txnRef)}?isTest=${CONFIG.ZAINPAY_IS_TEST}`,
+      );
+
+      if (!verifyRes.ok) {
+        let errBody;
+        try { errBody = await verifyRes.json(); } catch { errBody = {}; }
+        toast.error(
+          errBody.error ||
+          "Payment verification failed. Please contact support.",
+        );
+        return;
+      }
+
+      const verifyData = await verifyRes.json();
+      console.log("[ZainPay callback] verification result:", JSON.stringify(verifyData));
+
+      if (!verifyData._verified) {
+        toast.error(
+          "Payment could not be verified. If you were charged, contact support with reference: " + txnRef,
+        );
+        return;
+      }
+
+      // ── Payment verified — update Supabase record ─────────────────────────
+      if (pendingTxn && pendingTxn.attendeeId) {
+        setVerifyMessage("Updating your ticket record…");
+        const amount =
+          Number(verifyData.data?.amount) / 100 || // convert from kobo
+          pendingTxn.amount ||
+          0;
+
+        const { data: updatedAttendee, error: confirmErr } = await DB.confirmPayment(
+          pendingTxn.attendeeId,
+          {
+            reference: txnRef,
+            amount,
+          },
+        );
+
+        if (confirmErr) {
+          console.error("[ZainPay callback] confirmPayment error:", confirmErr);
+          toast.warning("Payment confirmed but ticket update failed. Contact support.");
+          return;
+        }
+
+        const finalAttendee = updatedAttendee || { id: pendingTxn.attendeeId };
+
+        setVerifyMessage("Generating your QR code…");
+
+        // Generate QR code
+        let qrUrl = null;
+        try {
+          qrUrl = await QRGen.generate(finalAttendee);
+          setQrDataUrl(qrUrl);
+          if (qrUrl && finalAttendee.id) {
+            await DB.updateQRCode(finalAttendee.id, qrUrl);
+          }
+        } catch (qrErr) {
+          console.error("[ZainPay callback] QR generation error:", qrErr);
+        }
+
+        setVerifyMessage("Generating your ticket PDF…");
+
+        // Generate PDF
+        try {
+          const pdf = await PDFTicket.generate(finalAttendee);
+          setPdfDataUri(pdf);
+        } catch (pdfErr) {
+          console.error("[ZainPay callback] PDF generation error:", pdfErr);
+        }
+
+        // Send email (best-effort, non-blocking)
+        EmailService.sendTicketEmail(finalAttendee).catch((e) =>
+          console.error("[ZainPay callback] Email failed:", e),
+        );
+
+        setAttendee(finalAttendee);
+        sessionStorage.removeItem("mcfabs_pending_txn");
+        toast.success("🎉 Payment confirmed! Your ticket is ready.");
+
+      } else {
+        // No attendeeId in session — ask user to enter their ticket code
+        toast.success("Payment verified! Please enter your ticket code below.");
+        sessionStorage.removeItem("mcfabs_pending_txn");
+      }
+
+    } catch (err) {
+      console.error("[ZainPay callback] Unexpected error:", err);
+      toast.error("An error occurred verifying your payment. Please contact support.");
+    }
+  };
 
   const loadTicket = async (code) => {
     if (!code) return;
@@ -71,6 +220,39 @@ function TicketPage({ setPage }) {
     React.createElement(
       "div",
       { className: "max-w-2xl mx-auto px-4" },
+
+      // ── ZainPay Verification Banner ──────────────────────────────────────
+      verifying &&
+        React.createElement(
+          "div",
+          {
+            style: {
+              background: "rgba(224,64,251,0.12)",
+              border: "1px solid rgba(224,64,251,0.3)",
+              borderRadius: 14,
+              padding: "16px 20px",
+              marginBottom: 24,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            },
+          },
+          React.createElement(LoadingSpinner, { size: 24, color: "#e040fb" }),
+          React.createElement(
+            "div",
+            null,
+            React.createElement(
+              "p",
+              { style: { color: "white", fontWeight: 700, fontSize: 15, margin: 0 } },
+              "Verifying Payment…",
+            ),
+            React.createElement(
+              "p",
+              { style: { color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "4px 0 0" } },
+              verifyMessage || "Please wait while we confirm your payment.",
+            ),
+          ),
+        ),
 
       // Header
       React.createElement(
