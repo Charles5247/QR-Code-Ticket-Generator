@@ -164,7 +164,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${secretKey}`,
+        Authorization: `Bearer ${publicKey}`,
       },
       body: JSON.stringify(payload),
     });
@@ -243,7 +243,7 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
     const response = await fetch(verifyUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${secretKey}`,
+        Authorization: `Bearer ${pulicKey}`,
         "Content-Type": "application/json",
       },
     });
