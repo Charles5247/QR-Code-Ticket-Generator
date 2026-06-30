@@ -80,8 +80,8 @@ app.post("/api/initialize-payment", async (req, res) => {
     process.env.ZAINPAY_IS_TEST === "false" ? false : isTest !== false;
 
   const baseUrl = useTest
-    ? "https://sandbox.zainpay.ng"
-    : "https://api.zainpay.ng";
+    ? "https://sandbox.zainpay.ng/merchant"
+    : "https://api.zainpay.ng/merchant";
 
   // ─── Resolve keys ────────────────────────────────────────────────────────
   // Secret key: always from server environment variables (never from frontend)
