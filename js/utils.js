@@ -272,98 +272,49 @@ const PDFTicket = {
 
 // ─── Zainpay Integration (Redirect channel) ────────────────────────────────────
 const ZainpayPay = {
-  async initialize(attendee) {
+  async initialize(attendee, onSuccess, onClose) {
     const ticket = CONFIG.TICKETS.find(
       (t) => t.id === attendee.ticket_category,
     );
     if (!ticket)
       throw new Error(`Unknown ticket category: ${attendee.ticket_category}`);
 
-    // Amount in kobo (smallest NGN unit) — ZainPay expects amount * 100
-    const amountKobo = String(ticket.price * 100);
+    const amount = String(ticket.price);
     const txnRef = `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-
-    // Persist txnRef AND attendeeId so the callback page can verify & confirm
     sessionStorage.setItem(
       "mcfabs_pending_txn",
-      JSON.stringify({
-        txnRef,
-        attendeeId: attendee.id,
-        ticketId: ticket.id,
-        amount: ticket.price,
-      }),
-    );
-
-    // Pick the correct public key based on test/live mode
-    const publicKey = CONFIG.ZAINPAY_IS_TEST
-      ? CONFIG.ZAINPAY_TEST_PUBLIC_KEY
-      : CONFIG.ZAINPAY_LIVE_PUBLIC_KEY;
-
-    console.log(
-      `[ZainpayPay] Mode: ${CONFIG.ZAINPAY_IS_TEST ? "TEST/SANDBOX" : "LIVE"}`,
-    );
-    console.log(
-      `[ZainpayPay] Using public key: ${publicKey ? publicKey.substring(0, 8) + "..." : "MISSING"}`,
+      JSON.stringify({ txnRef, ticket: ticket.id }),
     );
 
     const res = await fetch("/api/initialize-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount: amountKobo,
+        amount,
         txnRef,
-        mobileNumber: attendee.phone || "08000000000",
+        mobileNumber: attendee.phone,
         emailAddress: attendee.email,
         isTest: CONFIG.ZAINPAY_IS_TEST,
-        publicKey, // ← sent to server so it can include in ZainPay payload
       }),
     });
 
-    if (!res.ok) {
-      let errBody;
-      try {
-        errBody = await res.json();
-      } catch {
-        errBody = { error: `HTTP ${res.status}` };
-      }
-      const msg =
-        errBody.description ||
-        errBody.message ||
-        errBody.error ||
-        `Payment initialization failed (HTTP ${res.status})`;
-      throw new Error(msg);
-    }
+    const body = await res.json();
 
-    let result;
-    try {
-      result = await res.json();
-    } catch {
-      throw new Error("Invalid response from payment server");
-    }
-
-    // ZainPay returns { code: "00", data: { paymentUrl | checkoutUrl | redirectUrl } }
-    const redirectUrl =
-      result.data?.paymentUrl ||
-      result.data?.checkoutUrl ||
-      result.data?.redirectUrl ||
-      result.redirectUrl ||
-      result.paymentUrl ||
-      null;
-
-    if (!redirectUrl) {
-      console.error("[ZainpayPay] Full response:", JSON.stringify(result));
+    // Zainpay Redirect response: { code: "00", data: "<url>", description: "...", status: "200 OK" }
+    if (!res.ok || body.code !== "00") {
       throw new Error(
-        result.description ||
-          result.message ||
-          "ZainPay did not return a payment URL. Check server logs.",
+        body.description || body.message || "Payment initialization failed",
       );
     }
 
-    // Redirect the browser to ZainPay checkout page
+    const redirectUrl = body.data;
+    if (!redirectUrl || typeof redirectUrl !== "string") {
+      throw new Error("No redirect URL returned from Zainpay");
+    }
+
     window.location.href = redirectUrl;
   },
 };
-
 // ─── Email Service (Simulated) ────────────────────────────────────────────────
 const EmailService = {
   async sendTicketEmail(attendee) {

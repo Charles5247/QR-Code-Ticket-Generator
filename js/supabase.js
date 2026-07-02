@@ -5,48 +5,19 @@
 // Initialize Supabase client
 const { createClient } = supabase;
 
-// ─── Resolve the correct config keys (supports both naming conventions) ───────
-// config.js uses VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY.
-// Guard against misconfiguration by also accepting the legacy key names.
-const _SUPABASE_URL =
-  CONFIG.VITE_SUPABASE_URL ||
-  CONFIG.SUPABASE_URL ||
-  "";
-
-const _SUPABASE_KEY =
-  CONFIG.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  CONFIG.SUPABASE_ANON_KEY ||
-  "";
-
 let _supabaseClient = null;
 function getSupabase() {
   if (!_supabaseClient) {
-    if (!_SUPABASE_URL || !_SUPABASE_KEY) {
-      console.error("[Supabase] Missing URL or key — check config.js");
-      return null;
-    }
-    _supabaseClient = createClient(_SUPABASE_URL, _SUPABASE_KEY);
+    _supabaseClient = createClient(
+      CONFIG.SUPABASE_URL,
+      CONFIG.SUPABASE_ANON_KEY,
+    );
   }
   return _supabaseClient;
 }
 
-// ─── Demo Mode ────────────────────────────────────────────────────────────────
-// Only enter Demo Mode if the URL is missing OR contains the placeholder text.
-// This prevents production accidentally running in demo mode with real credentials.
-const _isPlaceholder = (v) =>
-  !v ||
-  v.includes("YOUR_SUPABASE") ||
-  v.includes("your_") ||
-  v.trim() === "";
-
-const DEMO_MODE = _isPlaceholder(_SUPABASE_URL) || _isPlaceholder(_SUPABASE_KEY);
-
-if (DEMO_MODE) {
-  console.warn(
-    "[DEMO MODE] Supabase not configured — using in-memory store. " +
-    "Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in config.js for production.",
-  );
-}
+// ─── Demo Mode (when Supabase not configured) ─────────────────────────────────
+const DEMO_MODE = CONFIG.SUPABASE_URL.includes("YOUR_SUPABASE");
 
 // In-memory demo store
 const DemoStore = {
@@ -324,6 +295,19 @@ const DB = {
       .from("attendees")
       .select("*")
       .order("created_at", { ascending: false });
+  },
+
+  async getByTxnRef(txnRef) {
+    if (DEMO_MODE) {
+      // In demo mode txnRef won't match anything real; return null gracefully
+      return { data: null, error: { message: "Not found" } };
+    }
+    const db = getSupabase();
+    return await db
+      .from("attendees")
+      .select("*")
+      .eq("payment_reference", txnRef)
+      .single();
   },
 
   async getByTicketCode(code) {
