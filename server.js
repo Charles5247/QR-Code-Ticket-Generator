@@ -31,17 +31,14 @@ app.get("/health", (_req, res) => {
 
 // ── Diagnostics endpoint (shows non-secret env presence) ──────────────────
 app.get("/api/diagnostics", (_req, res) => {
-  const isTest = process.env.ZAINPAY_IS_TEST !== "false"; // default sandbox
+  const isTest = process.env.ZAINPAY_IS_TEST !== "false";
   res.json({
     environment: process.env.NODE_ENV || "production",
     zainpay_mode: isTest ? "sandbox" : "live",
-    // Secret keys — only confirm presence, never expose values
     has_test_secret_key: !!process.env.ZAINPAY_TEST_SECRET_KEY,
     has_live_secret_key: !!process.env.ZAINPAY_LIVE_SECRET_KEY,
-    // Public keys — also only confirm presence
     has_test_public_key: !!process.env.ZAINPAY_TEST_PUBLIC_KEY,
     has_live_public_key: !!process.env.ZAINPAY_LIVE_PUBLIC_KEY,
-    // Zainbox codes
     has_test_zainbox: !!process.env.ZAINPAY_TEST_ZAINBOX_CODE,
     has_live_zainbox: !!process.env.ZAINPAY_LIVE_ZAINBOX_CODE,
     has_public_url: !!process.env.PUBLIC_URL,
@@ -52,16 +49,21 @@ app.get("/api/diagnostics", (_req, res) => {
 
 // ── ZainPay: Initialize Payment ────────────────────────────────────────────
 // POST /api/initialize-payment
-// Body: { amount, txnRef, mobileNumber, emailAddress, isTest, publicKey }
 app.post("/api/initialize-payment", async (req, res) => {
+  console.log("=".repeat(60));
+  console.log("[initialize-payment] ── INCOMING REQUEST ──");
   console.log(
-    "[initialize-payment] Incoming body:",
-    JSON.stringify({
-      ...req.body,
-      publicKey: req.body.publicKey
-        ? req.body.publicKey.substring(0, 8) + "..."
-        : "missing",
-    }),
+    "[initialize-payment] Full body:",
+    JSON.stringify(
+      {
+        ...req.body,
+        publicKey: req.body.publicKey
+          ? req.body.publicKey.substring(0, 12) + "..."
+          : "missing",
+      },
+      null,
+      2,
+    ),
   );
 
   const { amount, txnRef, mobileNumber, emailAddress, isTest, publicKey } =
@@ -75,21 +77,21 @@ app.post("/api/initialize-payment", async (req, res) => {
   }
 
   // ─── Determine environment ───────────────────────────────────────────────
-  // Server env ZAINPAY_IS_TEST wins when explicitly set to "false" (go-live).
   const useTest =
     process.env.ZAINPAY_IS_TEST === "false" ? false : isTest !== false;
 
+  console.log(`[initialize-payment] useTest = ${useTest}`);
+
   const baseUrl = useTest
-    ? "https://sandbox.zainpay.ng/merchant"
-    : "https://api.zainpay.ng/merchant";
+    ? "https://sandbox.zainpay.ng"
+    : "https://api.zainpay.ng";
 
   // ─── Resolve keys ────────────────────────────────────────────────────────
-  // Secret key: always from server environment variables (never from frontend)
+  // ✅ FIX: secretKey is used for Authorization header, NOT publicKey
   const secretKey = useTest
     ? process.env.ZAINPAY_TEST_SECRET_KEY
     : process.env.ZAINPAY_LIVE_SECRET_KEY;
 
-  // Public key: prefer server env variable, fall back to what frontend sent
   const resolvedPublicKey = useTest
     ? process.env.ZAINPAY_TEST_PUBLIC_KEY || publicKey || ""
     : process.env.ZAINPAY_LIVE_PUBLIC_KEY || publicKey || "";
@@ -98,10 +100,20 @@ app.post("/api/initialize-payment", async (req, res) => {
     ? process.env.ZAINPAY_TEST_ZAINBOX_CODE
     : process.env.ZAINPAY_LIVE_ZAINBOX_CODE;
 
+  console.log("[initialize-payment] Keys resolved:", {
+    secretKey: secretKey ? secretKey.substring(0, 8) + "..." : "MISSING ❌",
+    resolvedPublicKey: resolvedPublicKey
+      ? resolvedPublicKey.substring(0, 12) + "..."
+      : "MISSING ❌",
+    zainboxCode: zainboxCode
+      ? zainboxCode.substring(0, 6) + "..."
+      : "MISSING ❌",
+  });
+
   // ─── Guard missing credentials ───────────────────────────────────────────
   if (!secretKey) {
     console.error(
-      "[initialize-payment] Missing ZAINPAY secret key. Mode:",
+      "[initialize-payment] ❌ Missing secret key for mode:",
       useTest ? "sandbox" : "live",
     );
     return res.status(500).json({
@@ -111,19 +123,13 @@ app.post("/api/initialize-payment", async (req, res) => {
 
   if (!zainboxCode) {
     console.error(
-      "[initialize-payment] Missing ZAINPAY zainbox code. Mode:",
+      "[initialize-payment] ❌ Missing zainbox code for mode:",
       useTest ? "sandbox" : "live",
     );
     return res.status(500).json({
       error: `Missing ZAINPAY zainbox code for ${useTest ? "sandbox" : "live"} mode. Set ZAINPAY_${useTest ? "TEST" : "LIVE"}_ZAINBOX_CODE on Render.`,
     });
   }
-
-  console.log(
-    `[initialize-payment] Mode: ${useTest ? "SANDBOX" : "LIVE"}`,
-    `| publicKey present: ${!!resolvedPublicKey}`,
-    `| secretKey present: ${!!secretKey}`,
-  );
 
   // ─── Build callBackUrl ───────────────────────────────────────────────────
   const publicUrl = (process.env.PUBLIC_URL || "http://localhost:3000").replace(
@@ -147,70 +153,94 @@ app.post("/api/initialize-payment", async (req, res) => {
     ...(resolvedPublicKey && { publicKey: resolvedPublicKey }),
   };
 
+  const endpoint = `${baseUrl}/zainbox/card/initialize/payment`;
+
+  console.log("[initialize-payment] ── OUTGOING REQUEST ──");
+  console.log("[initialize-payment] Endpoint:", endpoint);
   console.log(
-    "[initialize-payment] ZainPay endpoint:",
-    `${baseUrl}/zainbox/card/initialize/payment`,
+    "[initialize-payment] Authorization: Bearer",
+    secretKey.substring(0, 8) + "...",
   );
   console.log(
-    "[initialize-payment] Payload:",
-    JSON.stringify({
-      ...payload,
-      zainboxCode: "***",
-      publicKey: resolvedPublicKey ? "***" : "(none)",
-    }),
+    "[initialize-payment] Full payload:",
+    JSON.stringify(
+      {
+        ...payload,
+        zainboxCode: payload.zainboxCode.substring(0, 6) + "***",
+        publicKey: resolvedPublicKey
+          ? resolvedPublicKey.substring(0, 12) + "***"
+          : "(none)",
+      },
+      null,
+      2,
+    ),
   );
 
   try {
-    const response = await fetch(`${baseUrl}/zainbox/card/initialize/payment`, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${publicKey}`,
+        // ✅ FIX: Use secretKey here, NOT publicKey
+        Authorization: `Bearer ${secretKey}`,
       },
       body: JSON.stringify(payload),
     });
 
     const responseText = await response.text();
 
-    console.log("[initialize-payment] ZainPay HTTP status:", response.status);
+    console.log("[initialize-payment] ── ZAINPAY RESPONSE ──");
     console.log(
-      "[initialize-payment] ZainPay raw response:",
-      responseText.substring(0, 500),
+      "[initialize-payment] HTTP Status:",
+      response.status,
+      response.statusText,
     );
+    console.log(
+      "[initialize-payment] Response Headers:",
+      JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2),
+    );
+    console.log("[initialize-payment] Full Raw Response:", responseText);
+    console.log("=".repeat(60));
 
     let result;
     try {
       result = JSON.parse(responseText);
     } catch (parseErr) {
       console.error(
-        "[initialize-payment] Failed to parse ZainPay response as JSON:",
+        "[initialize-payment] ❌ Failed to parse response as JSON:",
         parseErr.message,
       );
       return res.status(502).json({
         error: "ZainPay returned a non-JSON response",
-        raw: responseText.substring(0, 300),
+        raw: responseText,
         zainpay_status: response.status,
+        zainpay_status_text: response.statusText,
+        endpoint_called: endpoint,
       });
     }
+
+    console.log(
+      "[initialize-payment] Parsed result:",
+      JSON.stringify(result, null, 2),
+    );
 
     return res.status(response.status).json(result);
   } catch (err) {
     console.error(
-      "[initialize-payment] Network or unexpected error:",
+      "[initialize-payment] ❌ Network or unexpected error:",
       err.message,
-      err.stack,
     );
+    console.error("[initialize-payment] Stack:", err.stack);
     return res.status(500).json({
       error: "Failed to reach ZainPay API",
       details: err.message,
+      endpoint_called: endpoint,
     });
-    console.log(responseText);
   }
 });
 
 // ── ZainPay: Verify Payment ────────────────────────────────────────────────
 // GET /api/verify-payment/:txnRef
-// Query param: ?isTest=true|false  (optional, server env takes precedence)
 app.get("/api/verify-payment/:txnRef", async (req, res) => {
   const { txnRef } = req.params;
 
@@ -218,6 +248,8 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
     return res.status(400).json({ error: "Missing txnRef" });
   }
 
+  console.log("=".repeat(60));
+  console.log("[verify-payment] ── INCOMING REQUEST ──");
   console.log("[verify-payment] txnRef:", txnRef);
 
   const isTestQuery = req.query.isTest !== "false";
@@ -227,9 +259,16 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
     ? "https://sandbox.zainpay.ng"
     : "https://api.zainpay.ng";
 
+  // ✅ FIX: Use secretKey (not publicKey which was undefined in this scope)
   const secretKey = useTest
     ? process.env.ZAINPAY_TEST_SECRET_KEY
     : process.env.ZAINPAY_LIVE_SECRET_KEY;
+
+  console.log("[verify-payment] Mode:", useTest ? "SANDBOX" : "LIVE");
+  console.log(
+    "[verify-payment] secretKey:",
+    secretKey ? secretKey.substring(0, 8) + "..." : "MISSING ❌",
+  );
 
   if (!secretKey) {
     return res.status(500).json({
@@ -239,23 +278,29 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
 
   const verifyUrl = `${baseUrl}/zainbox/card/verify/v2/payment/${encodeURIComponent(txnRef)}`;
 
-  console.log("[verify-payment] Calling:", verifyUrl);
+  console.log("[verify-payment] ── OUTGOING REQUEST ──");
+  console.log("[verify-payment] URL:", verifyUrl);
 
   try {
     const response = await fetch(verifyUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${publicKey}`,
+        // ✅ FIX: secretKey is correctly scoped here now
+        Authorization: `Bearer ${secretKey}`,
         "Content-Type": "application/json",
       },
     });
 
     const responseText = await response.text();
-    console.log("[verify-payment] ZainPay HTTP status:", response.status);
+
+    console.log("[verify-payment] ── ZAINPAY RESPONSE ──");
     console.log(
-      "[verify-payment] ZainPay raw response:",
-      responseText.substring(0, 500),
+      "[verify-payment] HTTP Status:",
+      response.status,
+      response.statusText,
     );
+    console.log("[verify-payment] Full Raw Response:", responseText);
+    console.log("=".repeat(60));
 
     let result;
     try {
@@ -263,7 +308,8 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
     } catch {
       return res.status(502).json({
         error: "ZainPay returned non-JSON response during verification",
-        raw: responseText.substring(0, 300),
+        raw: responseText,
+        zainpay_status: response.status,
       });
     }
 
@@ -279,7 +325,7 @@ app.get("/api/verify-payment/:txnRef", async (req, res) => {
       _txnRef: txnRef,
     });
   } catch (err) {
-    console.error("[verify-payment] Error:", err.message);
+    console.error("[verify-payment] ❌ Error:", err.message);
     return res.status(500).json({
       error: "Failed to reach ZainPay verification API",
       details: err.message,
@@ -303,7 +349,13 @@ app.listen(PORT, "0.0.0.0", () => {
     `[server] ZainPay mode: ${process.env.ZAINPAY_IS_TEST === "false" ? "LIVE" : "SANDBOX"}`,
   );
   console.log(
+    `[server] Test secret key set: ${!!process.env.ZAINPAY_TEST_SECRET_KEY}`,
+  );
+  console.log(
     `[server] Test public key set: ${!!process.env.ZAINPAY_TEST_PUBLIC_KEY}`,
+  );
+  console.log(
+    `[server] Live secret key set: ${!!process.env.ZAINPAY_LIVE_SECRET_KEY}`,
   );
   console.log(
     `[server] Live public key set: ${!!process.env.ZAINPAY_LIVE_PUBLIC_KEY}`,
