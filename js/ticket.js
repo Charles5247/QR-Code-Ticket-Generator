@@ -71,21 +71,56 @@ function TicketPage({ setPage }) {
         // Fallback: pending txn stored in sessionStorage by ZainpayPay.initialize()
         const pending = sessionStorage.getItem("mcfabs_pending_txn");
         if (pending) {
-          const { txnRef: storedRef } = JSON.parse(pending);
-          if (storedRef === txnRef) {
-            // We don't have attendee id here, so we can't confirm payment.
-            // This shouldn't normally happen if the attendee was created before redirect.
+          const {
+            txnRef: storedRef,
+            attendeeId,
+            ticket: ticketCategory,
+          } = JSON.parse(pending);
+          // Check if txnRef matches (NOT === to error, but === to CONFIRM)
+          if (storedRef === txnRef && attendeeId) {
+            // We have a match AND attendee ID. Try to use this to confirm payment.
+            try {
+              const { data: confirmed, error: confirmErr } =
+                await DB.confirmPayment(attendeeId, {
+                  reference: txnRef,
+                  amount:
+                    verifyData.amount ||
+                    (CONFIG.TICKETS.find((t) => t.id === ticketCategory)
+                      ?.price ??
+                      0),
+                });
+              if (confirmErr) throw confirmErr;
+              foundAttendee = confirmed || {
+                id: attendeeId,
+                payment_status: "paid",
+                payment_reference: txnRef,
+              };
+              // Success via fallback - continue to generate ticket
+            } catch (fallbackErr) {
+              console.error(
+                "Fallback payment confirmation failed",
+                fallbackErr,
+              );
+              toast.error(
+                "Payment verified but ticket creation failed. Please contact support with reference: " +
+                  txnRef,
+              );
+              return;
+            }
+          } else {
             toast.error(
-              "Could not match payment to your registration. Please contact support with reference: " +
+              "Payment verified but registration record not found. Please contact support with reference: " +
                 txnRef,
             );
             return;
           }
+        } else {
+          toast.error(
+            "Registration record not found. Contact support with ref: " +
+              txnRef,
+          );
+          return;
         }
-        toast.error(
-          "Registration record not found. Contact support with ref: " + txnRef,
-        );
-        return;
       }
 
       // 3. If not already marked paid, confirm payment in Supabase

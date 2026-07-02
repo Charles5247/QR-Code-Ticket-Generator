@@ -283,7 +283,7 @@ const ZainpayPay = {
     const txnRef = `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     sessionStorage.setItem(
       "mcfabs_pending_txn",
-      JSON.stringify({ txnRef, ticket: ticket.id }),
+      JSON.stringify({ txnRef, ticket: ticket.id, attendeeId: attendee.id }),
     );
 
     // Save txnRef to database before redirecting to ZainPay
