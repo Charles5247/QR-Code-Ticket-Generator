@@ -55,7 +55,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       callBackUrl: `${process.env.PUBLIC_URL}/#/ticket`,
       allowRecurringPayment: false,
       currencyCode: "NGN",
-      logoUrl: "",
+      logoUrl: "https://fabs-masterclass.vercel.app/flier-pricing.png",
     };
 
     console.log("================================");
