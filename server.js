@@ -177,6 +177,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       "[initialize-payment] ZainPay raw response:",
       responseText.substring(0, 500),
     );
+    console.log(responseText);
 
     let result;
     try {
