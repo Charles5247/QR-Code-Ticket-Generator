@@ -177,7 +177,6 @@ app.post("/api/initialize-payment", async (req, res) => {
       "[initialize-payment] ZainPay raw response:",
       responseText.substring(0, 500),
     );
-    console.log(responseText);
 
     let result;
     try {
@@ -205,6 +204,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       error: "Failed to reach ZainPay API",
       details: err.message,
     });
+    console.log(responseText);
   }
 });
 
