@@ -104,7 +104,8 @@ const HASH_MAP = {
 
 function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
-  return ROUTES[hash] || "landing";
+  const path = hash.split("?")[0]; // Extract just the path part (before query params)
+  return ROUTES[path] || "landing";
 }
 
 function App() {
