@@ -5,19 +5,20 @@
 // Initialize Supabase client
 const { createClient } = supabase;
 
+const SUPABASE_URL = CONFIG.SUPABASE_URL || CONFIG.VITE_SUPABASE_URL || "";
+const SUPABASE_ANON_KEY =
+  CONFIG.SUPABASE_ANON_KEY || CONFIG.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+
 let _supabaseClient = null;
 function getSupabase() {
-  if (!_supabaseClient) {
-    _supabaseClient = createClient(
-      CONFIG.SUPABASE_URL,
-      CONFIG.SUPABASE_ANON_KEY,
-    );
+  if (!_supabaseClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
+    _supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return _supabaseClient;
 }
 
 // ─── Demo Mode (when Supabase not configured) ─────────────────────────────────
-const DEMO_MODE = CONFIG.SUPABASE_URL.includes("YOUR_SUPABASE");
+const DEMO_MODE = !SUPABASE_URL || SUPABASE_URL.includes("YOUR_SUPABASE");
 
 // In-memory demo store
 const DemoStore = {
