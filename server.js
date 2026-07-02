@@ -55,7 +55,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       callBackUrl: `${process.env.PUBLIC_URL}/#/ticket`,
       allowRecurringPayment: false,
       currencyCode: "NGN",
-      logoUrl: "https://fabs-masterclass.com/public/flier-pricing.jpg",
+      logoUrl: "https://fabs-masterclass.onrender.com/flier-pricing.jpg",
     };
 
     console.log("================================");
