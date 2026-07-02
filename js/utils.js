@@ -286,6 +286,14 @@ const ZainpayPay = {
       JSON.stringify({ txnRef, ticket: ticket.id }),
     );
 
+    // Save txnRef to database before redirecting to ZainPay
+    // This allows callback verification to find the attendee by txnRef
+    try {
+      await DB.updatePaymentReference(attendee.id, txnRef);
+    } catch (err) {
+      console.warn("Failed to save payment reference, continuing anyway:", err);
+    }
+
     const res = await fetch("/api/initialize-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

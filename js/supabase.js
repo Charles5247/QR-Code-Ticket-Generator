@@ -278,6 +278,24 @@ const DB = {
       .single();
   },
 
+  async updatePaymentReference(attendeeId, txnRef) {
+    if (DEMO_MODE) {
+      const updated = DemoStore.update(attendeeId, {
+        payment_reference: txnRef,
+      });
+      return { data: updated, error: null };
+    }
+    const db = getSupabase();
+    return await db
+      .from("attendees")
+      .update({
+        payment_reference: txnRef,
+      })
+      .eq("id", attendeeId)
+      .select()
+      .single();
+  },
+
   async updateQRCode(attendeeId, qrUrl) {
     if (DEMO_MODE) {
       DemoStore.update(attendeeId, { qr_code_url: qrUrl });

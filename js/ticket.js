@@ -22,6 +22,8 @@ function TicketPage({ setPage }) {
 
     const params = new URLSearchParams(rawSearch);
     const txnRef = params.get("txnRef");
+    console.log("CALLBACK URL:", window.location.href);
+    console.log("TXN REF:", txnRef);
     const status = params.get("status"); // Zainpay may send "success" / "failed"
 
     if (!txnRef) return; // not a Zainpay callback — normal page visit

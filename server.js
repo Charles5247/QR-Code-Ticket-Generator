@@ -99,6 +99,29 @@ app.post("/api/initialize-payment", async (req, res) => {
   }
 });
 
+app.post("/api/verify-payment", (req, res) => {
+  try {
+    const { txnRef } = req.body;
+    if (!txnRef) {
+      return res.status(400).json({
+        verified: false,
+        error: "Missing txnRef",
+      });
+    }
+    // TODO:
+    // Call ZainPay verify endpoint here
+    return res.json({
+      verified: true,
+      txnRef,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      verified: false,
+      error: error.message,
+    });
+  }
+});
+
 app.use(express.static(path.join(__dirname, "dist")));
 
 app.use((req, res) => {
