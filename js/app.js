@@ -104,7 +104,7 @@ const HASH_MAP = {
 
 function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
-  const path = hash.split("?")[0]; // Extract just the path part (before query params)
+  const path = hash.split("?")[0]; // strip query params before route lookup
   return ROUTES[path] || "landing";
 }
 
@@ -132,12 +132,17 @@ function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, [ready]);
 
-  // Update URL when page changes (but don't re-trigger hashchange)
+  // Update URL when page changes intentionally (setPage called by nav/buttons).
+  // Only update the hash if the current path doesn't already match — this
+  // preserves query params (e.g. ?txnRef=...) on the Zainpay callback URL.
   React.useEffect(() => {
     if (!ready) return;
-    const newHash = "#" + (HASH_MAP[page] || "/");
-    if (window.location.hash !== newHash) {
-      window.location.hash = newHash;
+    const expectedPath = HASH_MAP[page] || "/";
+    const currentPath = (window.location.hash.replace("#", "") || "/").split(
+      "?",
+    )[0];
+    if (currentPath !== expectedPath) {
+      window.location.hash = "#" + expectedPath;
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page, ready]);
