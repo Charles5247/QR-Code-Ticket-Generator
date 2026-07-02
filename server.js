@@ -52,7 +52,7 @@ app.post("/api/initialize-payment", async (req, res) => {
       mobileNumber,
       zainboxCode,
       emailAddress,
-      callBackUrl: `${process.env.PUBLIC_URL}/#/ticket`,
+      callBackUrl: `${process.env.PUBLIC_URL}/#/ticket?txnRef=${txnRef}`,
       allowRecurringPayment: false,
       currencyCode: "NGN",
       logoUrl: "https://fabs-masterclass.onrender.com/flier-pricing.jpg",
