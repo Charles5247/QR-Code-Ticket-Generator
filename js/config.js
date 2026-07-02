@@ -9,8 +9,10 @@ const CONFIG = {
   VITE_SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
   VITE_SUPABASE_PUBLISHABLE_KEY:
     "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
+  // Compatibility aliases used by the legacy frontend modules.
   SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
+  SUPABASE_ANON_KEY:
+    "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
   // ── Zainpay ───────────────────────────────────────────────
   // PUBLIC keys are safe to put here — they are browser-facing.

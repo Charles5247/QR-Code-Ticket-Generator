@@ -11,14 +11,17 @@ const SUPABASE_ANON_KEY =
 
 let _supabaseClient = null;
 function getSupabase() {
-  if (!_supabaseClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
+  if (!_supabaseClient) {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return null;
+    }
     _supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return _supabaseClient;
 }
 
 // ─── Demo Mode (when Supabase not configured) ─────────────────────────────────
-const DEMO_MODE = !SUPABASE_URL || SUPABASE_URL.includes("YOUR_SUPABASE");
+const DEMO_MODE = !SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes("YOUR_SUPABASE");
 
 // In-memory demo store
 const DemoStore = {
