@@ -281,17 +281,19 @@ const ZainpayPay = {
 
     const amount = String(ticket.price);
     const txnRef = `MCFABS-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+
+    // Store attendee.id alongside txnRef so ticket.js can confirm payment on return
     sessionStorage.setItem(
       "mcfabs_pending_txn",
-      JSON.stringify({ txnRef, ticket: ticket.id, attendeeId: attendee.id }),
+      JSON.stringify({ txnRef, attendeeId: attendee.id, ticket: ticket.id }),
     );
 
-    // Save txnRef to database before redirecting to ZainPay
-    // This allows callback verification to find the attendee by txnRef
+    // Pre-save txnRef on the attendee row so DB.getByTxnRef() finds it after redirect
     try {
       await DB.updatePaymentReference(attendee.id, txnRef);
-    } catch (err) {
-      console.warn("Failed to save payment reference, continuing anyway:", err);
+    } catch (e) {
+      console.warn("Could not pre-save txnRef to Supabase:", e);
+      // Non-fatal — sessionStorage fallback will still work
     }
 
     const res = await fetch("/api/initialize-payment", {
