@@ -17,7 +17,7 @@ app.use(
     credentials: true,
   }),
 );
-app.options("/*", cors());
+app.options("/*", cors()); // Change "*" to "/*" to fix the crash
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
