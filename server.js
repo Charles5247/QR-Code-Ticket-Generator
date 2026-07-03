@@ -2,29 +2,22 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
+import cors from "cors";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json());
 
 // ── CORS middleware ───────────────────────────────────────────────────────────
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS",
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-  );
-
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Max-Age", "86400"); // Cache preflight for 24 hours
-    return res.sendStatus(204); // 204 No Content is preferred for OPTIONS responses
-  }
-  next();
-});
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
+app.options("*", cors());
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
