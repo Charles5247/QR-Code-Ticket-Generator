@@ -19,7 +19,7 @@ app.use(
 );
 
 // 3. Handle OPTIONS preflight queries safely using an Express wild-card array
-app.options(["/", "/*"], cors());
+app.options(/^(.*)$/, cors());
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
