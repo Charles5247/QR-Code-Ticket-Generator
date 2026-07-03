@@ -72,11 +72,17 @@ function TicketPage({ setPage }) {
     try {
       // 1. Confirm with Zainpay server-side
       console.log("📞 CALLBACK: Calling /api/verify-payment");
-      const verifyRes = await fetch("/api/verify-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ txnRef }),
-      });
+
+      // FIX: Force absolute URL using window.location.origin
+      const verifyRes = await fetch(
+        `${window.location.origin}/api/verify-payment`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ txnRef }),
+        },
+      );
+
       const verifyData = await verifyRes.json();
       console.log("📞 CALLBACK: Verify response:", {
         ok: verifyRes.ok,
