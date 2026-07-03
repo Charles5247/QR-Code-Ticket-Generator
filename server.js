@@ -141,7 +141,7 @@ app.post("/api/verify-payment", async (req, res) => {
     console.log("================================");
 
     const { data: zainpayRes } = await axios.get(
-      `${baseUrl}/zainbox/card/verify/v2/payment/${txnRef}`,
+      `${baseUrl}/virtual-account/wallet/deposit/verify/${txnRef}`,
       {
         headers: {
           "Content-Type": "application/json",
