@@ -262,20 +262,42 @@ const DB = {
         amount_paid: paymentData.amount,
         paid_at: new Date().toISOString(),
       });
+      console.log("✅ DEMO: Payment confirmed", { attendeeId, updated });
       return { data: updated, error: null };
     }
+    
     const db = getSupabase();
-    return await db
+    if (!db) {
+      console.error("❌ Supabase client not initialized");
+      return { data: null, error: { message: "Supabase not configured" } };
+    }
+    
+    const updateData = {
+      payment_status: "paid",
+      payment_reference: paymentData.reference,
+      amount_paid: paymentData.amount,
+      paid_at: new Date().toISOString(),
+    };
+    
+    console.log("📝 Confirming payment in Supabase:", {
+      attendeeId,
+      updateData,
+    });
+    
+    const response = await db
       .from("attendees")
-      .update({
-        payment_status: "paid",
-        payment_reference: paymentData.reference,
-        amount_paid: paymentData.amount,
-        paid_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", attendeeId)
       .select()
       .single();
+    
+    if (response.error) {
+      console.error("❌ Payment confirmation failed:", response.error);
+    } else {
+      console.log("✅ Payment confirmed in Supabase:", response.data);
+    }
+    
+    return response;
   },
 
   async updatePaymentReference(attendeeId, txnRef) {

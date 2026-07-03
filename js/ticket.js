@@ -43,29 +43,44 @@ function TicketPage({ setPage }) {
   const handleZainpayCallback = async (txnRef) => {
     setVerifying(true);
     toast.info("Verifying your payment...");
+    console.log(
+      "🔵 CALLBACK: Starting payment verification for txnRef:",
+      txnRef,
+    );
 
     try {
       // 1. Confirm with Zainpay server-side
+      console.log("📞 CALLBACK: Calling /api/verify-payment");
       const verifyRes = await fetch("/api/verify-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ txnRef }),
       });
       const verifyData = await verifyRes.json();
+      console.log("📞 CALLBACK: Verify response:", {
+        ok: verifyRes.ok,
+        verified: verifyData.verified,
+        data: verifyData,
+      });
 
       if (!verifyRes.ok || !verifyData.verified) {
+        console.error("❌ CALLBACK: Payment verification failed");
         toast.error(
           "Payment could not be verified. If you were charged, please contact support.",
         );
         return;
       }
+      console.log("✅ CALLBACK: Payment verified by server");
 
       // 2. Find the attendee by txnRef (payment_reference was set during initialization)
       //    Fall back to sessionStorage if the DB lookup fails (e.g. race condition)
+      console.log("🔍 CALLBACK: Looking up attendee by txnRef");
       let foundAttendee = null;
       const { data: byRef } = await DB.getByTxnRef(txnRef);
+      console.log("🔍 CALLBACK: Lookup result:", byRef ? "found" : "not found");
 
       if (byRef) {
+        console.log("✅ CALLBACK: Found attendee via DB lookup:", byRef.id);
         foundAttendee = byRef;
       } else {
         // Fallback: pending txn stored in sessionStorage by ZainpayPay.initialize()
@@ -79,6 +94,9 @@ function TicketPage({ setPage }) {
           // Check if txnRef matches (NOT === to error, but === to CONFIRM)
           if (storedRef === txnRef && attendeeId) {
             // We have a match AND attendee ID. Try to use this to confirm payment.
+            console.log(
+              "🔄 Fallback: Using stored attendeeId to confirm payment",
+            );
             try {
               const { data: confirmed, error: confirmErr } =
                 await DB.confirmPayment(attendeeId, {
@@ -89,16 +107,21 @@ function TicketPage({ setPage }) {
                       ?.price ??
                       0),
                 });
-              if (confirmErr) throw confirmErr;
+              if (confirmErr) {
+                console.error("❌ Fallback confirmation error:", confirmErr);
+                throw confirmErr;
+              }
+              console.log("✅ Fallback: Payment confirmed");
               foundAttendee = confirmed || {
                 id: attendeeId,
                 payment_status: "paid",
                 payment_reference: txnRef,
               };
+              console.log("✅ Fallback: Ticket ready", foundAttendee);
               // Success via fallback - continue to generate ticket
             } catch (fallbackErr) {
               console.error(
-                "Fallback payment confirmation failed",
+                "❌ Fallback payment confirmation failed",
                 fallbackErr,
               );
               toast.error(
@@ -125,6 +148,7 @@ function TicketPage({ setPage }) {
 
       // 3. If not already marked paid, confirm payment in Supabase
       if (foundAttendee.payment_status !== "paid") {
+        console.log("💳 Confirming payment for attendee:", foundAttendee.id);
         const { data: confirmed, error: confirmErr } = await DB.confirmPayment(
           foundAttendee.id,
           {
@@ -137,12 +161,19 @@ function TicketPage({ setPage }) {
                 0),
           },
         );
-        if (confirmErr) throw confirmErr;
+        if (confirmErr) {
+          console.error("❌ Payment confirmation error:", confirmErr);
+          throw confirmErr;
+        }
+        console.log("✅ Payment confirmed, updating attendee data");
         foundAttendee = confirmed || {
           ...foundAttendee,
           payment_status: "paid",
           payment_reference: txnRef,
         };
+        console.log("📊 Updated attendee:", foundAttendee);
+      } else {
+        console.log("ℹ️ Attendee already marked as paid");
       }
 
       // 4. Generate QR and PDF
@@ -172,9 +203,19 @@ function TicketPage({ setPage }) {
       sessionStorage.removeItem("mcfabs_pending_txn");
 
       setAttendee(foundAttendee);
+      console.log("🎉 CALLBACK: SUCCESS! Ticket ready for:", {
+        attendeeId: foundAttendee.id,
+        name: foundAttendee.full_name,
+        status: foundAttendee.payment_status,
+        txnRef: foundAttendee.payment_reference,
+      });
       toast.success("🎉 Payment confirmed! Your ticket is ready.");
     } catch (err) {
-      console.error("Callback handling error", err);
+      console.error("❌ CALLBACK: Error during payment processing:", {
+        error: err.message,
+        stack: err.stack,
+        txnRef,
+      });
       toast.error(
         "Something went wrong verifying your payment. Please contact support.",
       );
