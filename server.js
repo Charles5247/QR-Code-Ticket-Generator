@@ -17,7 +17,7 @@ app.use(
     credentials: true,
   }),
 );
-app.options("*", cors());
+app.options("/*", cors());
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
