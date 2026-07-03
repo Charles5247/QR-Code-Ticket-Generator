@@ -46,13 +46,19 @@ app.post("/api/initialize-payment", async (req, res) => {
 
     // txnRef is embedded in callBackUrl so ticket.js always receives it reliably,
     // regardless of whether Zainpay also appends its own query params.
+    // Build baseUrl from request to support proxies, load balancers, and multiple environments
+    const protocol =
+      req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = req.headers["x-forwarded-host"] || req.get("host");
+    const appBaseUrl = process.env.PUBLIC_URL || `${protocol}://${host}`;
+
     const payload = {
       amount: String(amount),
       txnRef,
       mobileNumber,
       zainboxCode,
       emailAddress,
-      callBackUrl: `${process.env.PUBLIC_URL}/#/ticket?txnRef=${txnRef}`,
+      callBackUrl: `${appBaseUrl}/#/ticket?txnRef=${txnRef}`,
       allowRecurringPayment: false,
       currencyCode: "NGN",
       logoUrl: "https://fabs-masterclass.onrender.com/flier-pricing.jpg",
