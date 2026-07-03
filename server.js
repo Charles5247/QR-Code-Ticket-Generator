@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json());
 
-// ── CORS middleware ───────────────────────────────────────────────────────────
+//Global CORS setup for all incoming paths
 app.use(
   cors({
     origin: "*",
@@ -17,7 +17,9 @@ app.use(
     credentials: true,
   }),
 );
-app.options(cors()); // Change "*" to "/*" to fix the crash
+
+// 3. Handle OPTIONS preflight queries safely using an Express wild-card array
+app.options(["/", "/*"], cors());
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
