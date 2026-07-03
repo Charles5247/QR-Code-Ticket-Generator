@@ -10,10 +10,18 @@ app.use(express.json());
 // ── CORS middleware ───────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS",
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  );
+
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
+    res.header("Access-Control-Max-Age", "86400"); // Cache preflight for 24 hours
+    return res.sendStatus(204); // 204 No Content is preferred for OPTIONS responses
   }
   next();
 });
