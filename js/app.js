@@ -149,10 +149,17 @@ function App() {
   React.useEffect(() => {
     if (!ready) return;
     const expectedPath = HASH_MAP[page] || "/";
-    const currentPath = (window.location.hash.replace("#", "") || "/").split(
-      "?",
-    )[0];
-    if (currentPath !== expectedPath) {
+    const fullHash = window.location.hash.replace("#", "") || "/";
+    const currentPath = fullHash.split("?")[0];
+    const hasQueryParams = fullHash.includes("?");
+
+    // Don't update hash if it has query params (e.g. Zainpay callback)
+    // and the initial read-hash effect hasn't caught up yet.
+    // Wait for hash to match before doing any updates.
+    if (currentPath !== expectedPath && !hasQueryParams) {
+      console.log(
+        `🔀 ROUTER: Updating hash from #${fullHash} to #${expectedPath}`,
+      );
       window.location.hash = "#" + expectedPath;
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
