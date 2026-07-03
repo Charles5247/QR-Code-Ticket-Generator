@@ -105,12 +105,19 @@ const HASH_MAP = {
 function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
   const path = hash.split("?")[0]; // strip query params before route lookup
-  return ROUTES[path] || "landing";
+  const pageName = ROUTES[path] || "landing";
+  console.log(
+    `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
+  );
+  return pageName;
 }
 
 function App() {
   const [page, setPage] = React.useState("landing");
   const [ready, setReady] = React.useState(false);
+
+  console.log("🚀 App mounted. Initial URL:", window.location.href);
+  console.log("🚀 Initial hash:", window.location.hash);
 
   // Splash delay
   React.useEffect(() => {
@@ -121,13 +128,17 @@ function App() {
   // On ready: read hash and set initial page
   React.useEffect(() => {
     if (!ready) return;
+    console.log("⏱️ Splash complete, reading hash...");
     setPage(getPageFromHash());
   }, [ready]);
 
   // Listen for back/forward browser navigation
   React.useEffect(() => {
     if (!ready) return;
-    const onHashChange = () => setPage(getPageFromHash());
+    const onHashChange = () => {
+      console.log("🔄 Hash changed:", window.location.hash);
+      setPage(getPageFromHash());
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, [ready]);

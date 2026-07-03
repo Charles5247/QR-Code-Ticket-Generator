@@ -16,27 +16,48 @@ function TicketPage({ setPage }) {
   //   /#/ticket?txnRef=MCFABS-xxx&status=success
   // We verify server-side, confirm in Supabase, then load the ticket.
   React.useEffect(() => {
-    const rawSearch = window.location.hash.includes("?")
-      ? window.location.hash.split("?")[1]
-      : window.location.search;
+    console.log("🎫 TicketPage mounted, checking for callback...");
+    console.log("Current URL:", window.location.href);
+    console.log("Current hash:", window.location.hash);
 
-    const params = new URLSearchParams(rawSearch);
-    const txnRef = params.get("txnRef");
-    console.log("CALLBACK URL:", window.location.href);
-    console.log("TXN REF:", txnRef);
-    const status = params.get("status"); // Zainpay may send "success" / "failed"
+    // Extract all query parameters from the hash, even if malformed (multiple ? marks)
+    let txnRef = null;
+    let status = null;
 
-    if (!txnRef) return; // not a Zainpay callback — normal page visit
+    if (window.location.hash.includes("?")) {
+      // Hash contains query params. Extract everything after first ?
+      const hashParts = window.location.hash.split("?");
+      // Combine all parts after the first one (in case there are multiple ?)
+      const allParams = hashParts.slice(1).join("&");
+
+      console.log("📋 Raw params string:", allParams);
+
+      // Parse parameters robustly
+      const params = new URLSearchParams(allParams);
+      txnRef = params.get("txnRef");
+      status = params.get("status");
+
+      console.log("🔍 Extracted txnRef:", txnRef);
+      console.log("🔍 Extracted status:", status);
+    }
+
+    if (!txnRef) {
+      console.log("ℹ️ No txnRef in URL - not a Zainpay callback");
+      return; // not a Zainpay callback — normal page visit
+    }
 
     // Clean the URL immediately so refresh doesn't re-trigger verification
     const cleanHash = window.location.hash.split("?")[0];
     window.history.replaceState(null, "", window.location.pathname + cleanHash);
+    console.log("🧹 Cleaned URL to:", window.location.pathname + cleanHash);
 
     if (status && status !== "success") {
+      console.error("❌ Payment status was not success:", status);
       toast.error("Payment was not completed. Please try again.");
       return;
     }
 
+    console.log("✅ txnRef found, calling handleZainpayCallback");
     handleZainpayCallback(txnRef);
   }, []);
 
