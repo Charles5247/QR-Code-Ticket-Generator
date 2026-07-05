@@ -1141,7 +1141,7 @@ function SpeakerSection() {
                   marginBottom: 20,
                 },
               },
-              "Faith Abah, popularly known as MC FABS, is Kano's premier event host and media personality with over a decade of experience commanding stages across Northern Nigeria. From state ceremonies to corporate galas, from weddings to media broadcasts — her electrifying presence and unmatched professionalism have made her the most sought-after MC in the region.",
+              "Faith Abah, popularly known as MC FABS, is Kano's premier event host and media personality with over 5+ years of experience hosting the most prestigious events across Northern Nigeria. From state ceremonies to corporate gatherings, from Red Carpets Host to Event Compere — her electrifying presence and unmatched professionalism have made her the most sought-after MC in the region.",
             ),
             React.createElement(
               "p",
@@ -1389,7 +1389,6 @@ function BenefitsSection() {
     "✅ Network with fellow professionals and industry leaders",
     "✅ Receive an official Certificate of Attendance",
     "✅ Get access to exclusive masterclass materials and notes",
-    "✅ Join an exclusive alumni community for ongoing support",
   ];
 
   return React.createElement(
@@ -1457,38 +1456,38 @@ function TestimonialsSection() {
   const testimonials = [
     {
       name: "Hauwa Musa",
-      role: "Event Coordinator, Kano",
-      text: "MC FABS is in a league of her own. After attending one of her workshops, my hosting style completely transformed. I now command higher fees and confidence I never had before.",
+      role: "Fashion Designer, Kano",
+      text: "MC FABS is in a league of her own. i attended an event where she anchored and it was exceptional",
       rating: 5,
     },
     {
-      name: "Ibrahim Yakubu",
-      role: "Corporate MC, Abuja",
-      text: "Faith's energy is contagious and her knowledge is world-class. The practical techniques I learned have directly helped me land 3 major corporate events this year alone.",
+      name: "Samuel Oluwole",
+      role: "Corporate MC, Ibadan",
+      text: "Faith's energy is contagious and her knowledge is world-class. The practical techniques I learned have directly helped me land a major corporate events this year alone.",
       rating: 5,
     },
     {
-      name: "Sadiya Abubakar",
-      role: "TV Presenter, NTA Kano",
-      text: "I've attended many masterclasses but MC FABS delivers differently. Real, practical, and applicable knowledge that works from day one. Absolutely worth every kobo.",
+      name: "Charles Xavier",
+      role: "CEO, CAXiE Technologies Limited, Kano",
+      text: "I've attended many events but MC FABS delivers differently. Real, practical, and applicable knowledge that works from day one. Absolutely worth every kobo.",
       rating: 5,
     },
     {
-      name: "Aliyu Garba",
-      role: "Wedding MC & Entrepreneur",
-      text: "The business of hosting session alone was worth the ticket price. I finally understand how to value my work and attract the right clients. Game-changing experience.",
+      name: "Marcel Johnson",
+      role: "Public Speaker, Kano",
+      text: "I am more particular about the business of event hosting session alone, its worth the ticket price. I'm looking forward to understand how to value my work and attract the right clients.",
       rating: 5,
     },
     {
-      name: "Zainab Bello",
-      role: "Media Personality, Kaduna",
-      text: "MC FABS doesn't just teach — she transforms. The confidence I gained from her guidance has opened doors I never imagined. Highly recommend to any aspiring host.",
+      name: "Fauwziya Muktar",
+      role: "Arewa Bridal Assistant, Kano",
+      text: "I've worked closely with MC Fabs and the confidence i gained, opened doors i never imagined.",
       rating: 5,
     },
     {
-      name: "Chidi Okonkwo",
-      role: "Events MC, Lagos",
-      text: "Traveled from Lagos specifically for this and it was worth every mile. MC FABS's masterclass is the best investment I've made in my career. Period.",
+      name: "Kemi Johnson",
+      role: "Aspiring Events MC, Abuja",
+      text: "I'm travelling all the way from Abuja specifically for this and i have a thrilling expectation.",
       rating: 5,
     },
   ];
@@ -1501,9 +1500,9 @@ function TestimonialsSection() {
       { className: "max-w-6xl mx-auto" },
       React.createElement(SectionHeader, {
         tag: "Testimonials",
-        title: "What Alumni Say",
+        title: "The MC Fabs Feedbacks",
         subtitle:
-          "Real words from real people whose lives and careers were transformed.",
+          "Real words from real people whose events and careers were transformed.",
       }),
       React.createElement(
         "div",

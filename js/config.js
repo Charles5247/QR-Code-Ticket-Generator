@@ -11,8 +11,7 @@ const CONFIG = {
     "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
   // Compatibility aliases used by the legacy frontend modules.
   SUPABASE_URL: "https://vurousvjgwonvabutaom.supabase.co",
-  SUPABASE_ANON_KEY:
-    "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
+  SUPABASE_ANON_KEY: "sb_publishable_KvOghUmo4Lg7k1-7xP67HA_k_H-ItyS",
 
   // ── Zainpay ───────────────────────────────────────────────
   // PUBLIC keys are safe to put here — they are browser-facing.
@@ -41,7 +40,7 @@ const CONFIG = {
     eventDate: new Date("2026-09-12T10:00:00"),
     instagram: "https://www.instagram.com/mcfabs.ng/",
     whatsapp: "https://wa.me/2347061647118",
-    email: "faithabaheleojo@gmail.com",
+    email: "mcfabs.ng@gmail.com",
   },
 
   // ── Ticket Categories ─────────────────────────────────────

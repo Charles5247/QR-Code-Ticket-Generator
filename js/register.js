@@ -451,7 +451,7 @@ function RegistrationForm({
                   marginBottom: 8,
                 },
               },
-              "⚧ Gender (Optional)",
+              "⚧ Gender *",
             ),
             React.createElement(
               "select",
@@ -467,11 +467,6 @@ function RegistrationForm({
               React.createElement("option", { value: "" }, "Select gender"),
               React.createElement("option", { value: "Male" }, "Male"),
               React.createElement("option", { value: "Female" }, "Female"),
-              React.createElement(
-                "option",
-                { value: "Prefer not to say" },
-                "Prefer not to say",
-              ),
             ),
           ),
         ),
