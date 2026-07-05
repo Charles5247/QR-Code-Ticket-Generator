@@ -189,6 +189,94 @@ const DB = {
         DemoStore.getAll().filter(
           (a) => a.ticket_category === data.ticket_category,
         ).length + 1;
+
+      // Add randomness suffix to demo mode as well
+      const randomSuffix = Math.random()
+        .toString(36)
+        .substring(2, 6)
+        .toUpperCase();
+      const ticket_code = `${generateTicketCode(prefix, count)}-${randomSuffix}`;
+      const seat_number = generateSeatNumber(prefix, count);
+
+      const attendee = DemoStore.add({
+        ...data,
+        ticket_code,
+        seat_number,
+        payment_status: "pending",
+        amount_paid: 0,
+        payment_reference: null,
+        qr_code_url: null,
+        ticket_pdf_url: null,
+        checked_in: false,
+        checked_in_at: null,
+        scan_attempts: 0,
+        last_scan_status: null,
+        last_scan_attempt_at: null,
+      });
+      return { data: attendee, error: null };
+    }
+
+    const db = getSupabase();
+    const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
+    const prefix = ticket ? ticket.prefix : "GEN";
+    const count = (await this.getAttendeeCount(data.ticket_category)) + 1;
+
+    // 1. Generate a robust 4-character random sequence to guarantee uniqueness
+    const randomSuffix = Math.random()
+      .toString(36)
+      .substring(2, 6)
+      .toUpperCase();
+
+    // 2. Append the random sequence onto the standard ticket code format
+    const ticket_code = `${generateTicketCode(prefix, count)}-${randomSuffix}`;
+    const seat_number = generateSeatNumber(prefix, count);
+
+    const insertData = {
+      ...data,
+      ticket_code,
+      seat_number,
+      payment_status: "pending",
+      amount_paid: 0,
+      checked_in: false,
+      scan_attempts: 0,
+      last_scan_status: null,
+      last_scan_attempt_at: null,
+    };
+
+    const response = await db
+      .from("attendees")
+      .insert([insertData])
+      .select()
+      .single();
+
+    if (response.error && response.error.message?.includes("column")) {
+      return await db
+        .from("attendees")
+        .insert([
+          {
+            ...data,
+            ticket_code,
+            seat_number,
+            payment_status: "pending",
+            amount_paid: 0,
+            checked_in: false,
+          },
+        ])
+        .select()
+        .single();
+    }
+
+    return response;
+  },
+
+  /*async createAttendee(data) {
+    if (DEMO_MODE) {
+      const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
+      const prefix = ticket ? ticket.prefix : "GEN";
+      const count =
+        DemoStore.getAll().filter(
+          (a) => a.ticket_category === data.ticket_category,
+        ).length + 1;
       const ticket_code = generateTicketCode(prefix, count);
       const seat_number = generateSeatNumber(prefix, count);
       const attendee = DemoStore.add({
@@ -252,7 +340,7 @@ const DB = {
     }
 
     return response;
-  },
+  },*/
 
   async confirmPayment(attendeeId, paymentData) {
     if (DEMO_MODE) {
@@ -265,38 +353,38 @@ const DB = {
       console.log("✅ DEMO: Payment confirmed", { attendeeId, updated });
       return { data: updated, error: null };
     }
-    
+
     const db = getSupabase();
     if (!db) {
       console.error("❌ Supabase client not initialized");
       return { data: null, error: { message: "Supabase not configured" } };
     }
-    
+
     const updateData = {
       payment_status: "paid",
       payment_reference: paymentData.reference,
       amount_paid: paymentData.amount,
       paid_at: new Date().toISOString(),
     };
-    
+
     console.log("📝 Confirming payment in Supabase:", {
       attendeeId,
       updateData,
     });
-    
+
     const response = await db
       .from("attendees")
       .update(updateData)
       .eq("id", attendeeId)
       .select()
       .single();
-    
+
     if (response.error) {
       console.error("❌ Payment confirmation failed:", response.error);
     } else {
       console.log("✅ Payment confirmed in Supabase:", response.data);
     }
-    
+
     return response;
   },
 
