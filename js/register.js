@@ -43,6 +43,44 @@ function RegisterPage({ setPage }) {
   };
 
   const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+
+    // 🛑 CRITICAL GUARD: Instantly drop duplicate requests before executing
+    if (loading) return;
+
+    if (!validate()) {
+      toast.error("Please fix the errors below");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await DB.createAttendee({
+        full_name: form.full_name.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim(),
+        gender: form.gender,
+        occupation: form.occupation.trim(),
+        ticket_category: form.ticket_category,
+        special_requests: form.special_requests.trim(),
+      });
+
+      if (error) throw error;
+      setAttendee(data);
+      toast.success("Registration saved! Proceeding to payment...");
+      setStep(2);
+    } catch (err) {
+      toast.error("Registration failed. Please try again.");
+      console.error(err);
+      // Only release the lock if it actually failed, so they can retry
+      setLoading(false);
+    }
+    // Note: removed setLoading(false) from finally block so that
+    // it stays safely locked during the step transition!
+  };
+
+  /*const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       toast.error("Please fix the errors below");
@@ -71,7 +109,7 @@ function RegisterPage({ setPage }) {
     } finally {
       setLoading(false);
     }
-  };
+  };*/
 
   // ── Zainpay payment (Redirect channel) ──────────────────────
   const handlePayment = async () => {
