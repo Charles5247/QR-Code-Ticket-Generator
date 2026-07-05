@@ -472,7 +472,7 @@ function RegistrationForm({
         ),
 
         React.createElement(FormField, {
-          label: "Occupation (Optional)",
+          label: "Occupation *",
           value: form.occupation,
           onChange: (v) => update("occupation", v),
           placeholder: "e.g. Event Host, Entrepreneur, Media Personality",
@@ -483,7 +483,7 @@ function RegistrationForm({
         React.createElement(
           "div",
           null,
-          React.createElement(
+          /*React.createElement(
             "label",
             {
               style: {
@@ -504,7 +504,7 @@ function RegistrationForm({
               "Dietary requirements, accessibility needs, other requests...",
             rows: 3,
             style: { resize: "vertical", minHeight: 80 },
-          }),
+          }),*/
         ),
       ),
 
