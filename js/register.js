@@ -42,7 +42,7 @@ function RegisterPage({ setPage }) {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  /*const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
     // 🛑 CRITICAL GUARD: Instantly drop duplicate requests before executing
@@ -78,9 +78,9 @@ function RegisterPage({ setPage }) {
     }
     // Note: removed setLoading(false) from finally block so that
     // it stays safely locked during the step transition!
-  };
+  };*/
 
-  /*const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       toast.error("Please fix the errors below");
@@ -109,7 +109,7 @@ function RegisterPage({ setPage }) {
     } finally {
       setLoading(false);
     }
-  };*/
+  };
 
   // ── Zainpay payment (Redirect channel) ──────────────────────
   const handlePayment = async () => {

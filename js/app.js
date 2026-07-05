@@ -102,7 +102,7 @@ const HASH_MAP = {
   scanner: "/scanner",
 };
 
-function getPageFromHash() {
+/*function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
 
   // Clean up duplicate query structures if they exist
@@ -116,9 +116,9 @@ function getPageFromHash() {
     `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
   );
   return pageName;
-}
+}*/
 
-/*function getPageFromHash() {
+function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
   const path = hash.split("?")[0]; // strip query params before route lookup
   const pageName = ROUTES[path] || "landing";
@@ -126,7 +126,7 @@ function getPageFromHash() {
     `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
   );
   return pageName;
-}*/
+}
 
 function App() {
   const [page, setPage] = React.useState("landing");
