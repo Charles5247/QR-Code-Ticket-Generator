@@ -61,7 +61,7 @@ const CONFIG = {
       ],
       badge: null,
       available: true,
-      slots: 150,
+      slots: 100,
     },
   ],
 
