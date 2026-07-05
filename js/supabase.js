@@ -21,7 +21,8 @@ function getSupabase() {
 }
 
 // ─── Demo Mode (when Supabase not configured) ─────────────────────────────────
-const DEMO_MODE = !SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes("YOUR_SUPABASE");
+const DEMO_MODE =
+  !SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes("YOUR_SUPABASE");
 
 // In-memory demo store
 const DemoStore = {
@@ -181,89 +182,6 @@ const DB = {
     return count || 0;
   },
 
-  
-  /*async createAttendee(data) {
-    if (DEMO_MODE) {
-      const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
-      const prefix = ticket ? ticket.prefix : "GEN";
-      const count =
-        DemoStore.getAll().filter(
-          (a) => a.ticket_category === data.ticket_category,
-        ).length + 1;
-      
-      // Add randomness suffix to demo mode as well
-      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const ticket_code = `${generateTicketCode(prefix, count)}-${randomSuffix}`;
-      const seat_number = generateSeatNumber(prefix, count);
-      
-      const attendee = DemoStore.add({
-        ...data,
-        ticket_code,
-        seat_number,
-        payment_status: "pending",
-        amount_paid: 0,
-        payment_reference: null,
-        qr_code_url: null,
-        ticket_pdf_url: null,
-        checked_in: false,
-        checked_in_at: null,
-        scan_attempts: 0,
-        last_scan_status: null,
-        last_scan_attempt_at: null,
-      });
-      return { data: attendee, error: null };
-    }
-
-    const db = getSupabase();
-    const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
-    const prefix = ticket ? ticket.prefix : "GEN";
-    const count = (await this.getAttendeeCount(data.ticket_category)) + 1;
-
-    // 1. Generate a robust 4-character random sequence to guarantee uniqueness
-    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-
-    // 2. Append the random sequence onto the standard ticket code format
-    const ticket_code = `${generateTicketCode(prefix, count)}-${randomSuffix}`;
-    const seat_number = generateSeatNumber(prefix, count);
-
-    const insertData = {
-      ...data,
-      ticket_code,
-      seat_number,
-      payment_status: "pending",
-      amount_paid: 0,
-      checked_in: false,
-      scan_attempts: 0,
-      last_scan_status: null,
-      last_scan_attempt_at: null,
-    };
-
-    const response = await db
-      .from("attendees")
-      .insert([insertData])
-      .select()
-      .single();
-
-    if (response.error && response.error.message?.includes("column")) {
-      return await db
-        .from("attendees")
-        .insert([
-          {
-            ...data,
-            ticket_code,
-            seat_number,
-            payment_status: "pending",
-            amount_paid: 0,
-            checked_in: false,
-          },
-        ])
-        .select()
-        .single();
-    }
-
-    return response;
-  },*/
-  
   async createAttendee(data) {
     if (DEMO_MODE) {
       const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
@@ -295,46 +213,80 @@ const DB = {
     const db = getSupabase();
     const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
     const prefix = ticket ? ticket.prefix : "GEN";
-    const count = (await this.getAttendeeCount(data.ticket_category)) + 1;
-    const ticket_code = generateTicketCode(prefix, count);
-    const seat_number = generateSeatNumber(prefix, count);
 
-    const insertData = {
-      ...data,
-      ticket_code,
-      seat_number,
-      payment_status: "pending",
-      amount_paid: 0,
-      checked_in: false,
-      scan_attempts: 0,
-      last_scan_status: null,
-      last_scan_attempt_at: null,
-    };
+    // NOTE: ticket_code is built from a live count + a random suffix, and the
+    // insert is retried on a unique-constraint violation (23505). The count
+    // alone is NOT safe under concurrent registrations (two people registering
+    // at the same time can read the same count), so the random suffix + retry
+    // loop below is what actually guarantees uniqueness, not the count.
+    const MAX_ATTEMPTS = 5;
+    let lastError = null;
 
-    const response = await db
-      .from("attendees")
-      .insert([insertData])
-      .select()
-      .single();
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const count = (await this.getAttendeeCount(data.ticket_category)) + 1;
+      const randomSuffix = Math.random()
+        .toString(36)
+        .substring(2, 6)
+        .toUpperCase();
+      const ticket_code = `${generateTicketCode(prefix, count)}-${randomSuffix}`;
+      const seat_number = generateSeatNumber(prefix, count);
 
-    if (response.error && response.error.message?.includes("column")) {
-      return await db
+      const insertData = {
+        ...data,
+        ticket_code,
+        seat_number,
+        payment_status: "pending",
+        amount_paid: 0,
+        checked_in: false,
+        scan_attempts: 0,
+        last_scan_status: null,
+        last_scan_attempt_at: null,
+      };
+
+      const response = await db
         .from("attendees")
-        .insert([
-          {
-            ...data,
-            ticket_code,
-            seat_number,
-            payment_status: "pending",
-            amount_paid: 0,
-            checked_in: false,
-          },
-        ])
+        .insert([insertData])
         .select()
         .single();
+
+      if (!response.error) {
+        return response;
+      }
+
+      // Duplicate ticket_code (or seat_number) — regenerate and try again.
+      if (response.error.code === "23505") {
+        lastError = response.error;
+        console.warn(
+          `Ticket code collision on attempt ${attempt + 1}/${MAX_ATTEMPTS}, retrying with a new code...`,
+          response.error,
+        );
+        continue;
+      }
+
+      // Older schema missing newer audit columns — fall back to minimal insert.
+      if (response.error.message?.includes("column")) {
+        return await db
+          .from("attendees")
+          .insert([
+            {
+              ...data,
+              ticket_code,
+              seat_number,
+              payment_status: "pending",
+              amount_paid: 0,
+              checked_in: false,
+            },
+          ])
+          .select()
+          .single();
+      }
+
+      // Any other error — don't retry, surface it immediately.
+      return response;
     }
 
-    return response;
+    // Exhausted retries (extremely unlikely with the random suffix in play).
+    return { data: null, error: lastError };
   },
 
   async confirmPayment(attendeeId, paymentData) {
@@ -348,38 +300,38 @@ const DB = {
       console.log("✅ DEMO: Payment confirmed", { attendeeId, updated });
       return { data: updated, error: null };
     }
-    
+
     const db = getSupabase();
     if (!db) {
       console.error("❌ Supabase client not initialized");
       return { data: null, error: { message: "Supabase not configured" } };
     }
-    
+
     const updateData = {
       payment_status: "paid",
       payment_reference: paymentData.reference,
       amount_paid: paymentData.amount,
       paid_at: new Date().toISOString(),
     };
-    
+
     console.log("📝 Confirming payment in Supabase:", {
       attendeeId,
       updateData,
     });
-    
+
     const response = await db
       .from("attendees")
       .update(updateData)
       .eq("id", attendeeId)
       .select()
       .single();
-    
+
     if (response.error) {
       console.error("❌ Payment confirmation failed:", response.error);
     } else {
       console.log("✅ Payment confirmed in Supabase:", response.data);
     }
-    
+
     return response;
   },
 
