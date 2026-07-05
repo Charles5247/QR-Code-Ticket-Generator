@@ -18,14 +18,15 @@ app.all("/health", (req, res) => {
   // Normal response for standard GET pings
   res.status(200).json({ status: "ok" });
 });
-/*app.use(
+
+app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
-);*/
+);
 
 // 3. Handle OPTIONS preflight queries safely using an Express wild-card array
 app.options(/^(.*)$/, cors());
