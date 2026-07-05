@@ -102,7 +102,7 @@ const HASH_MAP = {
   scanner: "/scanner",
 };
 
-function getPageFromHash() {
+/*function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
 
   // Clean up duplicate query structures if they exist
@@ -116,10 +116,28 @@ function getPageFromHash() {
     `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
   );
   return pageName;
+}*/
+
+function getPageFromHash() {
+  const hash = window.location.hash.replace("#", "") || "/";
+  const path = hash.split("?")[0]; // strip query params before route lookup
+  const pageName = ROUTES[path] || "landing";
+  console.log(
+    `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
+  );
+  return pageName;
 }
 
 function App() {
-  const [page, setPage] = React.useState("landing");
+  // Initialize directly from the current hash so `page` is correct on the
+  // very first render. Previously this was set later in a useEffect keyed
+  // on `ready`, which raced with the URL-sync effect below: both effects
+  // fire in the same batch when `ready` flips true, and the URL-sync effect
+  // would run BEFORE React applied the setPage() from the hash-read effect,
+  // so it saw the stale default "landing" and rewrote the hash to "/" —
+  // stomping routes like "/ticket?status=success&txnRef=..." right after
+  // a Zainpay redirect, before the ticket page ever got a chance to render.
+  const [page, setPage] = React.useState(() => getPageFromHash());
   const [ready, setReady] = React.useState(false);
 
   console.log("🚀 App mounted. Initial URL:", window.location.href);
@@ -131,12 +149,9 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
-  // On ready: read hash and set initial page
-  React.useEffect(() => {
-    if (!ready) return;
-    console.log("⏱️ Splash complete, reading hash...");
-    setPage(getPageFromHash());
-  }, [ready]);
+  // On ready: no longer need to re-read the hash here — `page` is already
+  // correct from the lazy useState initializer above. (Kept the `ready`
+  // gate itself for the splash-screen delay, handled by the effect below.)
 
   // Listen for back/forward browser navigation
   React.useEffect(() => {
