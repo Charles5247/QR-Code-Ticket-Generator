@@ -104,13 +104,29 @@ const HASH_MAP = {
 
 function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
-  const path = hash.split("?")[0]; // strip query params before route lookup
+
+  // Clean up duplicate query structures if they exist
+  let path = hash;
+  if (hash.includes("?")) {
+    path = hash.split("?")[0];
+  }
+
   const pageName = ROUTES[path] || "landing";
   console.log(
     `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
   );
   return pageName;
 }
+
+/*function getPageFromHash() {
+  const hash = window.location.hash.replace("#", "") || "/";
+  const path = hash.split("?")[0]; // strip query params before route lookup
+  const pageName = ROUTES[path] || "landing";
+  console.log(
+    `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
+  );
+  return pageName;
+}*/
 
 function App() {
   const [page, setPage] = React.useState("landing");
@@ -146,7 +162,37 @@ function App() {
   // Update URL when page changes intentionally (setPage called by nav/buttons).
   // Only update the hash if the current path doesn't already match — this
   // preserves query params (e.g. ?txnRef=...) on the Zainpay callback URL.
+
+  // Update URL when page changes intentionally (setPage called by nav/buttons).
+  // Safely preserves and handles query params (e.g. ?txnRef=...) on the Zainpay callback URL.
   React.useEffect(() => {
+    if (!ready) return;
+    const expectedPath = HASH_MAP[page] || "/";
+    const fullHash = window.location.hash.replace("#", "") || "/";
+    const currentPath = fullHash.split("?")[0];
+
+    if (currentPath !== expectedPath) {
+      if (fullHash.includes("?")) {
+        // Grab everything starting from the first question mark
+        const queryContext = fullHash.substring(fullHash.indexOf("?"));
+        // Deduplicate query structures if they were appended weirdly
+        const cleanQuery = queryContext.replace(/\?/g, "&").replace("&", "?");
+
+        console.log(
+          `🔀 ROUTER: Preserving URL params during transition to #${expectedPath}`,
+        );
+        window.location.hash = "#" + expectedPath + cleanQuery;
+      } else {
+        console.log(
+          `🔀 ROUTER: Updating hash from #${fullHash} to #${expectedPath}`,
+        );
+        window.location.hash = "#" + expectedPath;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page, ready]);
+
+  /*React.useEffect(() => {
     if (!ready) return;
     const expectedPath = HASH_MAP[page] || "/";
     const fullHash = window.location.hash.replace("#", "") || "/";
@@ -163,7 +209,7 @@ function App() {
       window.location.hash = "#" + expectedPath;
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page, ready]);
+  }, [page, ready]);*/
 
   // Secret keyboard shortcut: Ctrl+Shift+A → admin login
   React.useEffect(() => {
