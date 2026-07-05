@@ -182,6 +182,23 @@ const DB = {
     return count || 0;
   },
 
+  // Lets the frontend check remaining slots up front (e.g. to show "Sold
+  // Out" on the ticket card) without waiting for a failed registration
+  // attempt. Returns null for slotsTotal if the category has no configured
+  // limit (unlimited).
+  async getTicketAvailability(category) {
+    const ticket = CONFIG.TICKETS.find((t) => t.id === category);
+    const slotsTotal =
+      ticket && typeof ticket.slots === "number" ? ticket.slots : null;
+    const taken = await this.getAttendeeCount(category);
+    return {
+      slotsTotal,
+      taken,
+      remaining: slotsTotal === null ? null : Math.max(0, slotsTotal - taken),
+      soldOut: slotsTotal === null ? false : taken >= slotsTotal,
+    };
+  },
+
   // Returns the next safe sequence number for a category's seat_number /
   // ticket_code. Deliberately does NOT use a raw row count: if any row for
   // this category was ever deleted (test data cleanup, duplicate removal,
@@ -224,10 +241,25 @@ const DB = {
     if (DEMO_MODE) {
       const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
       const prefix = ticket ? ticket.prefix : "GEN";
-      const count =
-        DemoStore.getAll().filter(
-          (a) => a.ticket_category === data.ticket_category,
-        ).length + 1;
+      const existingCount = DemoStore.getAll().filter(
+        (a) => a.ticket_category === data.ticket_category,
+      ).length;
+
+      if (
+        ticket &&
+        typeof ticket.slots === "number" &&
+        existingCount >= ticket.slots
+      ) {
+        return {
+          data: null,
+          error: {
+            code: "SOLD_OUT",
+            message: `${ticket.name} tickets are sold out (${ticket.slots}/${ticket.slots} slots taken).`,
+          },
+        };
+      }
+
+      const count = existingCount + 1;
       const ticket_code = generateTicketCode(prefix, count);
       const seat_number = generateSeatNumber(prefix, count);
       const attendee = DemoStore.add({
@@ -251,6 +283,22 @@ const DB = {
     const db = getSupabase();
     const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
     const prefix = ticket ? ticket.prefix : "GEN";
+
+    // Enforce the capacity defined in CONFIG.TICKETS[].slots. Without this,
+    // "slots" is purely a display number on the landing page and nothing
+    // actually stops registrations past it.
+    if (ticket && typeof ticket.slots === "number") {
+      const currentCount = await this.getAttendeeCount(data.ticket_category);
+      if (currentCount >= ticket.slots) {
+        return {
+          data: null,
+          error: {
+            code: "SOLD_OUT",
+            message: `${ticket.name} tickets are sold out (${ticket.slots}/${ticket.slots} slots taken).`,
+          },
+        };
+      }
+    }
 
     // NOTE: ticket_code is built from a live count + a random suffix, and the
     // insert is retried on a unique-constraint violation (23505). The count

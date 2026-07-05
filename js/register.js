@@ -24,8 +24,37 @@ function RegisterPage({ setPage }) {
   });
   const [errors, setErrors] = React.useState({});
 
+  // Ticket availability, keyed by ticket id — lets the form show "Sold Out"
+  // and block submission before the user fills out the whole form, instead
+  // of only finding out after DB.createAttendee rejects it.
+  const [availability, setAvailability] = React.useState({});
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const results = {};
+      await Promise.all(
+        CONFIG.TICKETS.map(async (t) => {
+          try {
+            results[t.id] = await DB.getTicketAvailability(t.id);
+          } catch (err) {
+            console.error("Failed to load availability for", t.id, err);
+          }
+        }),
+      );
+      if (!cancelled) setAvailability(results);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const selectedTicket = CONFIG.TICKETS.find(
     (t) => t.id === form.ticket_category,
+  );
+  const selectedAvailability = availability[form.ticket_category];
+  const isSelectedSoldOut = !!(
+    selectedAvailability && selectedAvailability.soldOut
   );
 
   const validate = () => {
@@ -38,6 +67,8 @@ function RegisterPage({ setPage }) {
       errs.phone = "Please enter a valid phone number (10-14 digits)";
     if (!form.ticket_category)
       errs.ticket_category = "Please select a ticket type";
+    else if (isSelectedSoldOut)
+      errs.ticket_category = "This ticket category is sold out";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -104,7 +135,11 @@ function RegisterPage({ setPage }) {
       toast.success("Registration saved! Proceeding to payment...");
       setStep(2);
     } catch (err) {
-      toast.error("Registration failed. Please try again.");
+      if (err && err.code === "SOLD_OUT") {
+        toast.error(err.message || "This ticket category is sold out.");
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -304,6 +339,7 @@ function RegisterPage({ setPage }) {
         errors,
         loading,
         selectedTicket,
+        availability,
         onSubmit: handleSubmit,
       }),
     step === 2 &&
@@ -331,9 +367,15 @@ function RegistrationForm({
   errors,
   loading,
   selectedTicket,
+  availability,
   onSubmit,
 }) {
   const update = (field, val) => setForm((prev) => ({ ...prev, [field]: val }));
+  const selectedAvailability =
+    availability && availability[form.ticket_category];
+  const isSelectedSoldOut = !!(
+    selectedAvailability && selectedAvailability.soldOut
+  );
 
   return React.createElement(
     "div",
@@ -545,6 +587,8 @@ function RegistrationForm({
           { style: { display: "flex", flexDirection: "column", gap: 12 } },
           CONFIG.TICKETS.map((ticket) => {
             const isSelected = form.ticket_category === ticket.id;
+            const ticketAvail = availability && availability[ticket.id];
+            const isSoldOut = !!(ticketAvail && ticketAvail.soldOut);
             return React.createElement(
               "label",
               {
@@ -555,7 +599,8 @@ function RegistrationForm({
                   gap: 16,
                   padding: "16px 20px",
                   borderRadius: 14,
-                  cursor: "pointer",
+                  cursor: isSoldOut ? "not-allowed" : "pointer",
+                  opacity: isSoldOut ? 0.5 : 1,
                   background: isSelected
                     ? "rgba(194,24,91,0.2)"
                     : "rgba(255,255,255,0.03)",
@@ -568,7 +613,9 @@ function RegistrationForm({
                 name: "ticket_category",
                 value: ticket.id,
                 checked: isSelected,
-                onChange: () => update("ticket_category", ticket.id),
+                disabled: isSoldOut,
+                onChange: () =>
+                  !isSoldOut && update("ticket_category", ticket.id),
                 style: {
                   accentColor: "#e040fb",
                   width: 18,
@@ -606,7 +653,23 @@ function RegistrationForm({
                       },
                       ticket.name,
                     ),
-                    ticket.badge &&
+                    isSoldOut &&
+                      React.createElement(
+                        "span",
+                        {
+                          style: {
+                            background: "rgba(239,68,68,0.25)",
+                            color: "#fca5a5",
+                            borderRadius: 999,
+                            padding: "2px 10px",
+                            fontSize: 11,
+                            fontWeight: 700,
+                          },
+                        },
+                        "SOLD OUT",
+                      ),
+                    !isSoldOut &&
+                      ticket.badge &&
                       React.createElement(
                         "span",
                         {
@@ -718,18 +781,19 @@ function RegistrationForm({
         "button",
         {
           type: "submit",
-          disabled: loading,
+          disabled: loading || isSelectedSoldOut,
           style: {
             width: "100%",
             padding: "16px 0",
             borderRadius: 14,
-            background: loading
-              ? "rgba(194,24,91,0.5)"
-              : "linear-gradient(135deg, #e040fb, #c2185b)",
+            background:
+              loading || isSelectedSoldOut
+                ? "rgba(194,24,91,0.5)"
+                : "linear-gradient(135deg, #e040fb, #c2185b)",
             color: "white",
             fontSize: 17,
             fontWeight: 700,
-            cursor: loading ? "not-allowed" : "pointer",
+            cursor: loading || isSelectedSoldOut ? "not-allowed" : "pointer",
             border: "none",
             fontFamily: "Inter, sans-serif",
             display: "flex",
@@ -739,7 +803,11 @@ function RegistrationForm({
           },
         },
         loading ? React.createElement(LoadingSpinner) : null,
-        loading ? "Processing..." : "🎟️ Continue to Payment →",
+        loading
+          ? "Processing..."
+          : isSelectedSoldOut
+            ? "😔 Sold Out"
+            : "🎟️ Continue to Payment →",
       ),
     ),
   );

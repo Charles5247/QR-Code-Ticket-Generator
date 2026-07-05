@@ -1593,6 +1593,28 @@ function TestimonialsSection() {
 
 // ─── Pricing Section (split layout: left = ticket info, right = pricing-poster) ─
 function PricingSection({ setPage }) {
+  const [availability, setAvailability] = React.useState({});
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const results = {};
+      await Promise.all(
+        CONFIG.TICKETS.map(async (t) => {
+          try {
+            results[t.id] = await DB.getTicketAvailability(t.id);
+          } catch (err) {
+            console.error("Failed to load availability for", t.id, err);
+          }
+        }),
+      );
+      if (!cancelled) setAvailability(results);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return React.createElement(
     "section",
     {
@@ -1640,6 +1662,8 @@ function PricingSection({ setPage }) {
           CONFIG.TICKETS.map((ticket, i) => {
             const isPopular = ticket.badge === "Most Popular";
             const isExclusive = ticket.badge === "Exclusive";
+            const ticketAvail = availability[ticket.id];
+            const isSoldOut = !!(ticketAvail && ticketAvail.soldOut);
 
             return React.createElement(
               "div",
@@ -1661,6 +1685,7 @@ function PricingSection({ setPage }) {
                   padding: 28,
                   position: "relative",
                   overflow: "hidden",
+                  opacity: isSoldOut ? 0.6 : 1,
                 },
               },
 
@@ -1680,28 +1705,48 @@ function PricingSection({ setPage }) {
                 }),
 
               // Badge
-              ticket.badge &&
-                React.createElement(
-                  "div",
-                  {
-                    style: {
-                      position: "absolute",
-                      top: 16,
-                      right: 16,
-                      background: isPopular
-                        ? "linear-gradient(135deg, #e040fb, #c2185b)"
-                        : "linear-gradient(135deg, #e040fb, #f3e5f5)",
-                      color: "white",
-                      borderRadius: 999,
-                      padding: "4px 12px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
+              isSoldOut
+                ? React.createElement(
+                    "div",
+                    {
+                      style: {
+                        position: "absolute",
+                        top: 16,
+                        right: 16,
+                        background: "rgba(239,68,68,0.85)",
+                        color: "white",
+                        borderRadius: 999,
+                        padding: "4px 12px",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      },
                     },
-                  },
-                  ticket.badge,
-                ),
+                    "Sold Out",
+                  )
+                : ticket.badge &&
+                    React.createElement(
+                      "div",
+                      {
+                        style: {
+                          position: "absolute",
+                          top: 16,
+                          right: 16,
+                          background: isPopular
+                            ? "linear-gradient(135deg, #e040fb, #c2185b)"
+                            : "linear-gradient(135deg, #e040fb, #f3e5f5)",
+                          color: "white",
+                          borderRadius: 999,
+                          padding: "4px 12px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        },
+                      },
+                      ticket.badge,
+                    ),
 
               // Ticket name
               React.createElement(
@@ -1814,9 +1859,11 @@ function PricingSection({ setPage }) {
                 "button",
                 {
                   onClick: () => {
+                    if (isSoldOut) return;
                     sessionStorage.setItem("mcfabs_selected_ticket", ticket.id);
                     setPage("register");
                   },
+                  disabled: isSoldOut,
                   style: {
                     width: "100%",
 
@@ -1824,27 +1871,31 @@ function PricingSection({ setPage }) {
                     borderRadius: 12,
                     fontSize: 15,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: isSoldOut ? "not-allowed" : "pointer",
                     border: "none",
                     fontFamily: "Inter, sans-serif",
-                    background: isPopular
-                      ? "linear-gradient(135deg, #e040fb, #c2185b)"
-                      : isExclusive
-                        ? "linear-gradient(135deg, #e040fb, #f3e5f5)"
-                        : "rgba(255,255,255,0.08)",
-                    color: "white",
+                    background: isSoldOut
+                      ? "rgba(255,255,255,0.08)"
+                      : isPopular
+                        ? "linear-gradient(135deg, #e040fb, #c2185b)"
+                        : isExclusive
+                          ? "linear-gradient(135deg, #e040fb, #f3e5f5)"
+                          : "rgba(255,255,255,0.08)",
+                    color: isSoldOut ? "rgba(255,255,255,0.4)" : "white",
                     transition: "all 0.2s ease",
                   },
                   onMouseEnter: (e) => {
+                    if (isSoldOut) return;
                     e.target.style.transform = "translateY(-2px)";
                     e.target.style.boxShadow = "0 8px 24px rgba(194,24,91,0.3)";
                   },
                   onMouseLeave: (e) => {
+                    if (isSoldOut) return;
                     e.target.style.transform = "translateY(0)";
                     e.target.style.boxShadow = "none";
                   },
                 },
-                "Register Now",
+                isSoldOut ? "Sold Out" : "Register Now",
               ),
             );
           }),
