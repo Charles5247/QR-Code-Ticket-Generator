@@ -182,6 +182,44 @@ const DB = {
     return count || 0;
   },
 
+  // Returns the next safe sequence number for a category's seat_number /
+  // ticket_code. Deliberately does NOT use a raw row count: if any row for
+  // this category was ever deleted (test data cleanup, duplicate removal,
+  // etc.), count(*) undercounts and "count + 1" can collide with a seat
+  // number that's still actively assigned to an existing attendee. Instead
+  // this reads the highest numeric suffix currently in use and returns one
+  // past it, so gaps from deletions can't cause a collision.
+  async getNextSequenceNumber(category) {
+    if (DEMO_MODE) {
+      return (
+        DemoStore.getAll().filter((a) => a.ticket_category === category)
+          .length + 1
+      );
+    }
+    const db = getSupabase();
+    const { data, error } = await db
+      .from("attendees")
+      .select("seat_number")
+      .eq("ticket_category", category);
+
+    if (error || !data) {
+      // Fall back to the count-based approach if this query fails for
+      // some reason — better than throwing.
+      return (await this.getAttendeeCount(category)) + 1;
+    }
+
+    let maxSeq = 0;
+    for (const row of data) {
+      const match =
+        row.seat_number && String(row.seat_number).match(/(\d+)\s*$/);
+      if (match) {
+        const n = parseInt(match[1], 10);
+        if (n > maxSeq) maxSeq = n;
+      }
+    }
+    return maxSeq + 1;
+  },
+
   async createAttendee(data) {
     if (DEMO_MODE) {
       const ticket = CONFIG.TICKETS.find((t) => t.id === data.ticket_category);
@@ -221,9 +259,14 @@ const DB = {
     // loop below is what actually guarantees uniqueness, not the count.
     const MAX_ATTEMPTS = 5;
     let lastError = null;
+    const baseSeq = await this.getNextSequenceNumber(data.ticket_category);
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const count = (await this.getAttendeeCount(data.ticket_category)) + 1;
+      // Advance the sequence number itself on every retry (not just the
+      // ticket_code suffix) — seat_number has no randomness, so re-using
+      // the same number on every attempt would just repeat the same
+      // collision forever, which is exactly what was happening before.
+      const count = baseSeq + attempt;
       const randomSuffix = Math.random()
         .toString(36)
         .substring(2, 6)
