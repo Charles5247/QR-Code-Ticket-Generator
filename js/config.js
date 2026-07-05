@@ -48,7 +48,7 @@ const CONFIG = {
     {
       id: "general",
       name: "Early Bird",
-      price: 500,
+      price: 30500,
       currency: "NGN",
       prefix: "EAR",
       color: "from-purple-800 to-purple-950",

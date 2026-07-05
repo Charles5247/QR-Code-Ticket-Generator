@@ -141,7 +141,7 @@ function RegisterPage({ setPage }) {
 
     const paymentData = {
       reference: `DEMO-${Date.now()}`,
-      amount: selectedTicket ? selectedTicket.price : 500,
+      amount: selectedTicket ? selectedTicket.price : 30500,
       status: "paid",
     };
 
