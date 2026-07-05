@@ -31,7 +31,7 @@ const CONFIG = {
 
   // ── Event Details ─────────────────────────────────────────
   EVENT: {
-    name: "MC FABS Masterclass V1.0",
+    name: "MC FABS Masterclass 1.0",
     tagline: "VOICE . STAGE . IMPACT",
     host: "Faith Abah (MC FABS)",
     date: "2026-09-12",

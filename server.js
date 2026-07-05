@@ -9,14 +9,23 @@ const app = express();
 app.use(express.json());
 
 //Global CORS setup for all incoming paths
-app.use(
+app.all("/health", (req, res) => {
+  // Clear the payload entirely if it's a HEAD request to prevent size errors
+  if (req.method === "HEAD") {
+    return res.status(200).end();
+  }
+
+  // Normal response for standard GET pings
+  res.status(200).json({ status: "ok" });
+});
+/*app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
-);
+);*/
 
 // 3. Handle OPTIONS preflight queries safely using an Express wild-card array
 app.options(/^(.*)$/, cors());
