@@ -839,7 +839,7 @@ function HeroSection({ setPage }) {
 
 // ─── Stats Bar ────────────────────────────────────────────────────────────────
 function StatsBar() {
-  const ticket = CONFIG.TICKETS[0] || { slots: 150, price: 500 };
+  const ticket = CONFIG.TICKETS[0] || { slots: 150, price: 30500 };
   const stats = [
     { num: String(ticket.slots), label: "Total Seats", suffix: "" },
     {
