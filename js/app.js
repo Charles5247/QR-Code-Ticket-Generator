@@ -102,7 +102,7 @@ const HASH_MAP = {
   scanner: "/scanner",
 };
 
-/*function getPageFromHash() {
+function getPageFromHash() {
   const hash = window.location.hash.replace("#", "") || "/";
 
   // Clean up duplicate query structures if they exist
@@ -111,16 +111,6 @@ const HASH_MAP = {
     path = hash.split("?")[0];
   }
 
-  const pageName = ROUTES[path] || "landing";
-  console.log(
-    `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
-  );
-  return pageName;
-}*/
-
-function getPageFromHash() {
-  const hash = window.location.hash.replace("#", "") || "/";
-  const path = hash.split("?")[0]; // strip query params before route lookup
   const pageName = ROUTES[path] || "landing";
   console.log(
     `🔀 ROUTER: hash="${hash}" → path="${path}" → page="${pageName}"`,
