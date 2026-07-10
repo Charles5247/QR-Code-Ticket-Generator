@@ -1199,13 +1199,13 @@ function SpeakerSection() {
 function ScheduleSection() {
   const schedule = [
     {
-      time: "9:00 AM",
+      time: "10:00 AM",
       title: "Registration & Welcome",
       desc: "Check-in, networking, and morning refreshments",
       type: "break",
     },
     {
-      time: "10:00 AM",
+      time: "10:15 AM",
       title: "Opening Ceremony",
       desc: "Welcome address and introduction by MC FABS",
       type: "main",
@@ -1217,43 +1217,43 @@ function ScheduleSection() {
       type: "main",
     },
     {
-      time: "12:00 PM",
+      time: "11:15 AM",
       title: "Session 2: Stage Presence",
       desc: "Command attention, read your audience, and own the stage",
       type: "main",
     },
     {
-      time: "1:30 PM",
+      time: "12:00 PM",
       title: "Lunch Break & Networking",
       desc: "Curated networking lunch and lounge experience",
       type: "break",
     },
     {
-      time: "2:30 PM",
+      time: "12:45 PM",
       title: "Session 3: The Business of Hosting",
       desc: "Pricing, clients, contracts, and scaling your MC brand",
       type: "main",
     },
     {
-      time: "3:30 PM",
+      time: "1:30 PM",
       title: "Session 4: Media & Digital Presence",
       desc: "Building your brand online and attracting the right clients",
       type: "main",
     },
     {
-      time: "4:30 PM",
+      time: "2:15 PM",
       title: "Live Practice & Hot Seat Coaching",
       desc: "Practical exercises with real-time feedback from MC FABS",
       type: "special",
     },
     {
-      time: "5:30 PM",
+      time: "3:00 PM",
       title: "Certificate Presentation",
       desc: "Official certificates, group photographs, and closing remarks",
       type: "special",
     },
     {
-      time: "6:00 PM",
+      time: "3:30 PM",
       title: "Networking Reception",
       desc: "Informal networking and closing reception",
       type: "special",
