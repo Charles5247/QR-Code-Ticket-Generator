@@ -67,7 +67,7 @@ const PDFTicket = {
     }
 
     const doc = new jsPDFClass({
-      orientation: "Portrait",
+      orientation: "Landscape",
       unit: "mm",
       format: [148, 105],
     });
