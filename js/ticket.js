@@ -39,11 +39,26 @@ function TicketPage({ setPage }) {
 
       console.log("🔍 Extracted txnRef:", txnRef);
       console.log("🔍 Extracted status:", status);
+
+      // Save this immediately, before anything else can go wrong,
+      // so a refresh mid-verification can still recover it.
+      if (txnRef) {
+        sessionStorage.setItem("mcfabs_last_txn_ref", txnRef);
+      }
     }
 
     if (!txnRef) {
-      console.log("ℹ️ No txnRef in URL - not a Zainpay callback");
-      return; // not a Zainpay callback — normal page visit
+      // Nothing in the address — but maybe we saved one earlier
+      // and got refreshed before finishing. Check storage before
+      // treating this as a normal page visit.
+      const savedRef = sessionStorage.getItem("mcfabs_last_txn_ref");
+      if (savedRef) {
+        console.log("♻️ Recovering unfinished txnRef from storage:", savedRef);
+        handleZainpayCallback(savedRef);
+      } else {
+        console.log("ℹ️ No txnRef in URL - not a Zainpay callback");
+      }
+      return;
     }
 
     // Clean the URL immediately so refresh doesn't re-trigger verification
@@ -228,6 +243,7 @@ function TicketPage({ setPage }) {
 
       // 5. Clean up sessionStorage
       sessionStorage.removeItem("mcfabs_pending_txn");
+      sessionStorage.removeItem("mcfabs_last_txn_ref");
 
       setAttendee(foundAttendee);
       console.log("🎉 CALLBACK: SUCCESS! Ticket ready for:", {
