@@ -60,7 +60,7 @@ const QRGen = {
 
 // ─── PDF Ticket Generator ─────────────────────────────────────────────────────
 const PDFTicket = {
-  async generate(attendee) {
+  async generate(attendee, existingQrDataUrl = null) {
     const jsPDFClass = window.jsPDF || (window.jspdf && window.jspdf.jsPDF);
     if (!jsPDFClass) {
       throw new Error("PDF library is not loaded");
@@ -171,13 +171,37 @@ const PDFTicket = {
     doc.setDrawColor(168, 85, 247);
     doc.roundedRect(qrX - 1.5, qrY - 1.5, qrSize + 3, qrSize + 3, 3, 3, "S");
 
-    const qrDataUrl = await QRGen.generate(attendee);
+    // Prefer the QR that's already been generated and confirmed working
+    // on the ticket page. Only regenerate as a fallback so we don't hide
+    // a second, independent failure point.
+    let qrDataUrl = existingQrDataUrl;
+    if (!qrDataUrl) {
+      try {
+        qrDataUrl = await QRGen.generate(attendee);
+      } catch (err) {
+        console.error("QR regeneration for PDF failed:", err);
+      }
+    }
+
     if (qrDataUrl) {
       try {
         doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
       } catch (err) {
-        console.warn("Failed to render QR in PDF:", err);
+        // Don't swallow this — log it loudly so it's actually debuggable,
+        // and draw a visible fallback instead of leaving an empty box.
+        console.error("Failed to render QR in PDF:", err);
+        doc.setTextColor(200, 200, 220);
+        doc.setFontSize(6);
+        doc.text("QR unavailable", qrX + qrSize / 2, qrY + qrSize / 2, {
+          align: "center",
+        });
       }
+    } else {
+      doc.setTextColor(200, 200, 220);
+      doc.setFontSize(6);
+      doc.text("QR unavailable", qrX + qrSize / 2, qrY + qrSize / 2, {
+        align: "center",
+      });
     }
 
     doc.setFontSize(5.5);

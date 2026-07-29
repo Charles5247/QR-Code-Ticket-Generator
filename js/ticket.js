@@ -229,7 +229,7 @@ function TicketPage({ setPage }) {
       }
 
       try {
-        const pdf = await PDFTicket.generate(foundAttendee);
+        const pdf = await PDFTicket.generate(foundAttendee, qrUrl);
         setPdfDataUri(pdf);
       } catch (e) {
         console.error("PDF generation failed", e);
@@ -299,7 +299,7 @@ function TicketPage({ setPage }) {
 
       // Generate PDF
       if (data.payment_status === "paid") {
-        const pdf = await PDFTicket.generate(data);
+        const pdf = await PDFTicket.generate(data, qrUrl);
         setPdfDataUri(pdf);
       }
 
