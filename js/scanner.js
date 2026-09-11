@@ -255,17 +255,17 @@ function ScannerPage({ setPage }) {
     success: {
       icon: "✅",
       title: "CHECK-IN SUCCESSFUL",
-      color: "#F39F5A",
-      bg: "rgba(102,103,171,0.12)",
-      border: "rgba(102,103,171,0.35)",
+      color: "#22c55e",
+      bg: "rgba(34,197,94,0.12)",
+      border: "rgba(34,197,94,0.35)",
       message: "Welcome to MC FABS Exclusive Masterclass! Enjoy the event.",
     },
     duplicate: {
       icon: "⚠️",
       title: "ALREADY CHECKED IN",
-      color: "#E8BCB9",
-      bg: "rgba(245,213,224,0.12)",
-      border: "rgba(245,213,224,0.35)",
+      color: "#facc15",
+      bg: "rgba(250,204,21,0.12)",
+      border: "rgba(250,204,21,0.35)",
       message: "This ticket has already been scanned. Do not allow re-entry.",
     },
     invalid: {
@@ -279,9 +279,9 @@ function ScannerPage({ setPage }) {
     unpaid: {
       icon: "💳",
       title: "PAYMENT NOT CONFIRMED",
-      color: "#E8BCB9",
-      bg: "rgba(245,213,224,0.12)",
-      border: "rgba(245,213,224,0.35)",
+      color: "#facc15",
+      bg: "rgba(250,204,21,0.12)",
+      border: "rgba(250,204,21,0.35)",
       message: "Payment has not been confirmed for this ticket.",
     },
   };

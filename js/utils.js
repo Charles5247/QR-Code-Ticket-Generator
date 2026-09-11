@@ -5,19 +5,9 @@
 // ─── QR Code Generator ────────────────────────────────────────────────────────
 const QRGen = {
   async generate(attendee) {
-    const data = JSON.stringify({
-      ticket_code: attendee.ticket_code,
-      full_name: attendee.full_name,
-      email: attendee.email,
-      seat_number: attendee.seat_number,
-      ticket_category: attendee.ticket_category,
-      payment_status: attendee.payment_status,
-      event: {
-        name: CONFIG.EVENT.name,
-        date: CONFIG.EVENT.date,
-        venue: CONFIG.EVENT.venue,
-      },
-    });
+    const data = String(attendee.ticket_code || "")
+      .trim()
+      .toUpperCase();
 
     try {
       const url = await QRCode.toDataURL(data, {
@@ -34,18 +24,9 @@ const QRGen = {
   },
 
   async generateCanvas(attendee, canvasEl) {
-    const data = JSON.stringify({
-      ticket_code: attendee.ticket_code,
-      full_name: attendee.full_name,
-      email: attendee.email,
-      seat_number: attendee.seat_number,
-      payment_status: attendee.payment_status,
-      event: {
-        name: CONFIG.EVENT.name,
-        date: CONFIG.EVENT.date,
-        venue: CONFIG.EVENT.venue,
-      },
-    });
+    const data = String(attendee.ticket_code || "")
+      .trim()
+      .toUpperCase();
     try {
       await QRCode.toCanvas(canvasEl, data, {
         width: 200,
@@ -163,8 +144,8 @@ const PDFTicket = {
     doc.text("Ticket Holder", rightX, 29);
 
     // Large QR block at top right
-    const qrSize = 28;
-    const qrX = 111;
+    const qrSize = 34;
+    const qrX = 108;
     const qrY = 16;
     doc.setFillColor(20, 10, 40);
     doc.roundedRect(qrX - 1.5, qrY - 1.5, qrSize + 3, qrSize + 3, 3, 3, "FD");
