@@ -641,21 +641,41 @@ function ScannerPage({ setPage }) {
                 borderRadius: 20,
                 overflow: "hidden",
                 marginBottom: 20,
+                position: "relative",
               },
             },
-            React.createElement(
-              "div",
-              {
-                id: "qr-reader",
-                style: {
-                  width: "100%",
-                  minHeight: 300,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                },
+            // This box belongs ENTIRELY to the camera library — React
+            // never renders anything inside it, ever. Mixing React's
+            // rendering with the camera library's own DOM changes inside
+            // the same box was causing a crash (blank white screen).
+            React.createElement("div", {
+              id: "qr-reader",
+              style: {
+                width: "100%",
+                minHeight: 300,
               },
-              !scannerActive &&
+            }),
+            // The placeholder now sits ON TOP as a sibling (positioned
+            // over the box with CSS) instead of inside it, so React can
+            // freely show/hide it without ever touching what the camera
+            // library put inside the box underneath.
+            !scannerActive &&
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    pointerEvents: "none",
+                    background: "rgba(20,18,40,0.95)",
+                  },
+                },
                 React.createElement(
                   "div",
                   { style: { textAlign: "center", padding: 40 } },
@@ -676,7 +696,7 @@ function ScannerPage({ setPage }) {
                     "Camera is not active. Click below to start scanning.",
                   ),
                 ),
-            ),
+              ),
             React.createElement(
               "div",
               {
