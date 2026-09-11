@@ -152,8 +152,11 @@ app.post("/api/verify-payment", async (req, res) => {
     console.log("ZAINPAY VERIFY REQUEST — txnRef:", txnRef);
     console.log("================================");
 
+    // Using Zainpay's v2 verify endpoint (their recommended one going forward).
+    // It returns depositedAmount / txnChargesAmount / amountAfterCharges instead
+    // of the old nested { amount: { amount } } shape.
     const { data: zainpayRes } = await axios.get(
-      `${baseUrl}/virtual-account/wallet/deposit/verify/${txnRef}`,
+      `${baseUrl}/virtual-account/wallet/deposit/verify/v2/${txnRef}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -163,12 +166,10 @@ app.post("/api/verify-payment", async (req, res) => {
     );
 
     console.log("================================");
-    console.log("ZAINPAY VERIFY RESPONSE");
+    console.log("ZAINPAY VERIFY V2 RESPONSE");
     console.log(JSON.stringify(zainpayRes, null, 2));
     console.log("================================");
 
-    // FIXED PERMANENTLY: Check for success code '00' and presence of transaction data.
-    // This bypasses the non-existent 'txnStatus' property that Zainpay doesn't return.
     if (zainpayRes.code !== "00" || !zainpayRes.data) {
       return res.status(400).json({
         verified: false,
@@ -177,16 +178,18 @@ app.post("/api/verify-payment", async (req, res) => {
       });
     }
 
-    // Handle nested or directly returned amount data structures robustly
-    const rawAmount = zainpayRes.data.amount;
-    const exactAmount =
-      rawAmount && typeof rawAmount === "object" ? rawAmount.amount : rawAmount;
+    // v2 gives us the amount actually deposited, before Zainpay's charges
+    // were deducted. That's the number the customer paid, so that's what
+    // we save as amount_paid.
+    const exactAmount = Number(zainpayRes.data.depositedAmount) || 0;
 
     // Return the fields expected by your React TicketPage component
     return res.status(200).json({
       verified: true,
       txnRef,
-      amount: exactAmount || 0,
+      amount: exactAmount,
+      amountAfterCharges: Number(zainpayRes.data.amountAfterCharges) || 0,
+      txnChargesAmount: Number(zainpayRes.data.txnChargesAmount) || 0,
       txnStatus: "success", // Manually injected to keep frontend dependencies happy
     });
   } catch (error) {
