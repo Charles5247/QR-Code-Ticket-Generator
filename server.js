@@ -125,6 +125,15 @@ app.post("/api/initialize-payment", async (req, res) => {
 });
 
 // ── Verify payment after Zainpay redirect ─────────────────────────────────────
+// This now does THREE things instead of one:
+//   1. Ask Zainpay: "is this payment confirmed?" (v2 endpoint)
+//   2. If Zainpay says "not found" (which happens when a card payment hasn't
+//      finished settling into their system yet), automatically ask Zainpay to
+//      RECONCILE it — this is Zainpay's own tool for "money left the customer's
+//      card but hasn't shown up in my transaction list yet."
+//   3. After reconciling, check one more time. This means a customer whose
+//      payment landed in your Zainbox but never confirmed in your app will now
+//      self-heal, without anyone touching Supabase by hand.
 app.post("/api/verify-payment", async (req, res) => {
   try {
     const { txnRef } = req.body;
@@ -148,49 +157,100 @@ app.post("/api/verify-payment", async (req, res) => {
       });
     }
 
+    const authHeaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${publicKey}`,
+    };
+
+    // Zainpay's amounts come back in KOBO (the smallest unit — 100 kobo = ₦1),
+    // same as every other money field in their API. Confirmed against a real
+    // transaction: Zainpay returned 2999250, and the real amount paid was
+    // ₦29,992.50 — i.e. exactly 2999250 / 100. So we always divide by 100.
+    const toNaira = (koboValue) => {
+      const n = Number(koboValue);
+      return Number.isFinite(n) ? n / 100 : 0;
+    };
+
+    const callVerifyV2 = () =>
+      axios.get(
+        `${baseUrl}/virtual-account/wallet/deposit/verify/v2/${txnRef}`,
+        {
+          headers: authHeaders,
+        },
+      );
+
+    const callReconcile = () =>
+      axios.get(
+        `${baseUrl}/virtual-account/wallet/transaction/reconcile/card-payment`,
+        { headers: authHeaders, params: { txnRef } },
+      );
+
     console.log("================================");
     console.log("ZAINPAY VERIFY REQUEST — txnRef:", txnRef);
     console.log("================================");
 
-    // Using Zainpay's v2 verify endpoint (their recommended one going forward).
-    // It returns depositedAmount / txnChargesAmount / amountAfterCharges instead
-    // of the old nested { amount: { amount } } shape.
-    const { data: zainpayRes } = await axios.get(
-      `${baseUrl}/virtual-account/wallet/deposit/verify/v2/${txnRef}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${publicKey}`,
-        },
-      },
+    let zainpayRes;
+    try {
+      const { data } = await callVerifyV2();
+      zainpayRes = data;
+    } catch (err) {
+      zainpayRes = err.response?.data || { code: "99" };
+    }
+
+    console.log(
+      "ZAINPAY VERIFY V2 RESPONSE:",
+      JSON.stringify(zainpayRes, null, 2),
     );
 
-    console.log("================================");
-    console.log("ZAINPAY VERIFY V2 RESPONSE");
-    console.log(JSON.stringify(zainpayRes, null, 2));
-    console.log("================================");
+    // "Txn not found" (code 04) — the payment may have gone through on the
+    // customer's card but hasn't synced into Zainpay's transaction list yet.
+    // Ask Zainpay to reconcile it, then check again.
+    if (zainpayRes.code !== "00") {
+      console.log("Verify failed — attempting reconcile for", txnRef);
+      try {
+        const { data: reconcileRes } = await callReconcile();
+        console.log(
+          "ZAINPAY RECONCILE RESPONSE:",
+          JSON.stringify(reconcileRes, null, 2),
+        );
+      } catch (err) {
+        console.log(
+          "ZAINPAY RECONCILE ERROR:",
+          JSON.stringify(err.response?.data || err.message),
+        );
+      }
+
+      // Try verifying again now that reconcile has run.
+      try {
+        const { data } = await callVerifyV2();
+        zainpayRes = data;
+        console.log(
+          "ZAINPAY VERIFY RETRY RESPONSE:",
+          JSON.stringify(zainpayRes, null, 2),
+        );
+      } catch (err) {
+        zainpayRes = err.response?.data || zainpayRes;
+      }
+    }
 
     if (zainpayRes.code !== "00" || !zainpayRes.data) {
       return res.status(400).json({
         verified: false,
-        error: "Payment not confirmed by Zainpay",
+        error: "Payment not confirmed by Zainpay, even after reconcile",
         details: zainpayRes,
       });
     }
 
-    // v2 gives us the amount actually deposited, before Zainpay's charges
-    // were deducted. That's the number the customer paid, so that's what
-    // we save as amount_paid.
-    const exactAmount = Number(zainpayRes.data.depositedAmount) || 0;
+    // Real amount the customer paid, converted from kobo to naira.
+    const exactAmount = toNaira(zainpayRes.data.depositedAmount);
 
-    // Return the fields expected by your React TicketPage component
     return res.status(200).json({
       verified: true,
       txnRef,
       amount: exactAmount,
-      amountAfterCharges: Number(zainpayRes.data.amountAfterCharges) || 0,
-      txnChargesAmount: Number(zainpayRes.data.txnChargesAmount) || 0,
-      txnStatus: "success", // Manually injected to keep frontend dependencies happy
+      amountAfterCharges: toNaira(zainpayRes.data.amountAfterCharges),
+      txnChargesAmount: toNaira(zainpayRes.data.txnChargesAmount),
+      txnStatus: "success",
     });
   } catch (error) {
     const errData = error.response?.data;
@@ -206,7 +266,66 @@ app.post("/api/verify-payment", async (req, res) => {
   }
 });
 
-// ── Serve the SPA ─────────────────────────────────────────────────────────────
+// ── Check the Zainbox directly ────────────────────────────────────────────────
+// This calls Zainpay to get the REAL list of card transactions for your
+// Zainbox — the same data you'd see in the Zainpay dashboard. Use this to
+// answer "did this actually reach the Zainbox?" independent of what your own
+// database says. Example:
+//   GET /api/zainbox-transactions?email=someone@gmail.com
+//   GET /api/zainbox-transactions?txnRef=MCFABS-xxxx
+//   GET /api/zainbox-transactions?status=success&count=50
+app.get("/api/zainbox-transactions", async (req, res) => {
+  try {
+    const useTest = process.env.ZAINPAY_IS_TEST === "false" ? false : true;
+    const baseUrl = useTest
+      ? "https://sandbox.zainpay.ng"
+      : "https://api.zainpay.ng";
+    const publicKey = useTest
+      ? process.env.ZAINPAY_TEST_PUBLIC_KEY
+      : process.env.ZAINPAY_LIVE_PUBLIC_KEY;
+    const zainboxCode = useTest
+      ? process.env.ZAINPAY_TEST_ZAINBOX_CODE
+      : process.env.ZAINPAY_LIVE_ZAINBOX_CODE;
+
+    const { count, dateFrom, dateTo, email, status, txnRef } = req.query;
+
+    const { data } = await axios.get(
+      `${baseUrl}/zainbox/card/transactions/${zainboxCode}`,
+      {
+        headers: { Authorization: `Bearer ${publicKey}` },
+        params: {
+          count: count || 20,
+          dateFrom,
+          dateTo,
+          email,
+          status,
+          txnRef,
+        },
+      },
+    );
+
+    // Convert every kobo amount in the list to plain naira before sending it
+    // back, so whatever displays this never has to guess at units again.
+    const transactions = (data.data || []).map((t) => ({
+      ...t,
+      amount: t.amount ? Number(t.amount) / 100 : t.amount,
+    }));
+
+    return res.status(200).json({ ...data, data: transactions });
+  } catch (error) {
+    const errData = error.response?.data;
+    const errStatus = error.response?.status || 500;
+    console.error(
+      "ZainPay Transactions Error:",
+      errStatus,
+      JSON.stringify(errData),
+    );
+    return res
+      .status(errStatus)
+      .json(errData || { code: "99", message: error.message });
+  }
+});
+
 app.use(express.static(path.join(__dirname, "dist")));
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
