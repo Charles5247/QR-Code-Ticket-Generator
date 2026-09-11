@@ -56,25 +56,50 @@ function ScannerPage({ setPage }) {
       setScannerActive(true);
       setScannerStarted(true);
 
-      const cameras = await Html5Qrcode.getCameras();
-      if (!cameras || cameras.length === 0) {
-        toast.error("No camera found on this device.");
-        setScannerActive(false);
-        setScannerStarted(false);
-        return;
+      // Ask the browser directly for the REAR camera instead of guessing
+      // from the camera list — guessing was picking the front camera on
+      // some phones (especially iPhones), so the scanner was pointed at
+      // the person's face instead of the QR code.
+      const startWithConstraints = async (constraints) => {
+        await html5QrCode.current.start(
+          constraints,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          async (decodedText) => {
+            await handleQRScanned(decodedText);
+          },
+          () => {},
+        );
+      };
+
+      try {
+        // "exact" forces the true rear lens where the device supports it.
+        await startWithConstraints({ facingMode: { exact: "environment" } });
+      } catch (exactErr) {
+        console.warn(
+          "Exact rear camera not available, falling back:",
+          exactErr,
+        );
+        try {
+          // Fall back to "prefer rear, but allow front if that's all there is".
+          await startWithConstraints({ facingMode: "environment" });
+        } catch (fallbackErr) {
+          console.warn(
+            "facingMode failed, falling back to camera list:",
+            fallbackErr,
+          );
+          // Last resort — old behavior, for devices where facingMode isn't supported at all.
+          const cameras = await Html5Qrcode.getCameras();
+          if (!cameras || cameras.length === 0) {
+            toast.error("No camera found on this device.");
+            setScannerActive(false);
+            setScannerStarted(false);
+            return;
+          }
+          const cameraId =
+            cameras.length > 1 ? cameras[cameras.length - 1].id : cameras[0].id;
+          await startWithConstraints(cameraId);
+        }
       }
-
-      const cameraId =
-        cameras.length > 1 ? cameras[cameras.length - 1].id : cameras[0].id;
-
-      await html5QrCode.current.start(
-        cameraId,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        async (decodedText) => {
-          await handleQRScanned(decodedText);
-        },
-        () => {},
-      );
 
       toast.success("Scanner ready! Point camera at a QR code.");
     } catch (err) {
